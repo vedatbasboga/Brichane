@@ -1,0 +1,31 @@
+import { groupByCategory } from '../data/topics'
+import type { Recipe } from '../engine'
+
+interface TopicSelectProps {
+  id: string
+  topics: readonly Recipe[]
+  value: string
+  onChange: (topicId: string) => void
+}
+
+/** Kategoriye göre gruplanmış konu seçici. */
+export function TopicSelect({ id, topics, value, onChange }: TopicSelectProps) {
+  return (
+    <select
+      id={id}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900"
+    >
+      {groupByCategory(topics).map(([category, items]) => (
+        <optgroup key={category} label={category}>
+          {items.map((topic) => (
+            <option key={topic.id} value={topic.id}>
+              {topic.name}
+            </option>
+          ))}
+        </optgroup>
+      ))}
+    </select>
+  )
+}

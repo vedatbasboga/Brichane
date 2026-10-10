@@ -9,7 +9,7 @@ Bu plan Claude Code ile **faz faz** uygulanmak üzere yazıldı. Her fazı ayrı
 
 - [x] Faz 1 — Proje iskeleti
 - [x] Faz 2 — Briç motoru (çekirdek)
-- [ ] Faz 3 — Arayüz: üret ve incele
+- [x] Faz 3 — Arayüz: üret ve incele
 - [ ] Faz 4 — Konu kütüphanesi
 - [ ] Faz 5 — Firebase bağlantısı (Auth olmadan)
 - [ ] Faz 6 — Çift kukla analizi (DDS)

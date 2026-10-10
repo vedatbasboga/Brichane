@@ -41,7 +41,8 @@ src/
   workers/       # dealWorker.ts, ddsWorker.ts
   data/          # varsayılan konu tarifleri
   firebase/      # firebase init + firestore erişim katmanı
-  components/    # HandDiagram, DealCard, DDTable, TopicForm...
+  components/    # HandView, DealCard, DealDialog, TopicSelect...
+  hooks/         # useDealGenerator (Worker yönetimi)
   pages/         # Generate, Sets, Topics, Print
   i18n/tr.ts     # arayüz metinleri
 ```

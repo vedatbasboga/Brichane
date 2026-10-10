@@ -1,10 +1,18 @@
 import { tr } from './i18n/tr'
+import { GeneratePage } from './pages/GeneratePage'
 
 export default function App() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-2 bg-emerald-50 p-4 text-emerald-950">
-      <h1 className="text-4xl font-bold">{tr.appName}</h1>
-      <p className="text-emerald-800">{tr.tagline}</p>
-    </main>
+    <div className="min-h-screen bg-slate-50 text-slate-900">
+      <header className="border-b border-emerald-900/20 bg-emerald-800 text-white">
+        <div className="mx-auto flex max-w-7xl items-baseline gap-3 px-4 py-3">
+          <h1 className="text-xl font-bold">{tr.appName}</h1>
+          <span className="text-sm text-emerald-100">{tr.generate.title}</span>
+        </div>
+      </header>
+      <main className="mx-auto max-w-7xl px-4 py-6">
+        <GeneratePage />
+      </main>
+    </div>
   )
 }
