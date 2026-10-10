@@ -1,23 +1,11 @@
-import {
-  STRAINS,
-  STRAIN_SYMBOLS,
-  contractLevel,
-  parCells,
-  type DdResult,
-  type Seat,
-  type Strain,
-} from '../engine'
+import { STRAINS, contractLevel, parCells, type DdResult, type Seat } from '../engine'
 import { tr } from '../i18n/tr'
 import { formatPar } from './ddFormat'
+import { Suit } from './ui/Suit'
+import { SuitText } from './ui/SuitText'
+import { cx } from './ui/cx'
 
 const ROWS: readonly Seat[] = ['N', 'S', 'E', 'W']
-const STRAIN_COLOR: Record<Strain, string> = {
-  C: 'text-slate-900',
-  D: 'text-red-600',
-  H: 'text-red-600',
-  S: 'text-slate-900',
-  N: 'text-slate-900',
-}
 
 interface DdTableProps {
   result?: DdResult
@@ -25,33 +13,29 @@ interface DdTableProps {
 }
 
 /**
- * Her deklarenin her kozda yapabileceği en yüksek kontrat seviyesi (– : çıkmaz);
- * par kontratın hücresi sarı. Altında par satırı.
+ * Çift kukla tablosu: K G D B × ♣ ♦ ♥ ♠ NT; hücrede yapılabilecek en yüksek kontrat seviyesi
+ * ya da "–". Par kontratın hücresi sarı; altında par satırı.
  */
 export function DdTable({ result, size = 'sm' }: DdTableProps) {
-  const large = size === 'lg'
   if (!result) {
     return (
-      <p className={`text-slate-400 ${large ? 'text-sm' : 'text-xs'}`} aria-live="polite">
+      <p className="bh-dd-wait" aria-live="polite">
         {tr.dd.computing}
       </p>
     )
   }
   const par = parCells(result.par)
-  const cell = large ? 'h-7 text-sm' : 'h-5 text-[11px]'
-
   return (
-    <div className={large ? 'text-sm' : 'text-[11px] leading-tight'}>
-      <table
-        className={`w-full table-fixed border-separate text-center tabular-nums ${large ? 'border-spacing-1' : 'border-spacing-0.5'}`}
-        aria-label={tr.dd.title}
-      >
+    <div className={cx('bh-dd', size === 'lg' && 'bh-dd-lg')}>
+      <table className="bh-dd-table" aria-label={tr.dd.title}>
         <thead>
           <tr>
-            <th className={large ? 'w-8' : 'w-5'} />
+            <th scope="col" className="bh-dd-corner">
+              <span className="bh-visually-hidden">{tr.dealView.hand}</span>
+            </th>
             {STRAINS.map((strain) => (
-              <th key={strain} className={`font-semibold ${STRAIN_COLOR[strain]}`}>
-                {STRAIN_SYMBOLS[strain]}
+              <th key={strain} scope="col">
+                {strain === 'N' ? 'NT' : <Suit suit={strain} size={size === 'lg' ? 14 : 12} />}
               </th>
             ))}
           </tr>
@@ -59,7 +43,7 @@ export function DdTable({ result, size = 'sm' }: DdTableProps) {
         <tbody>
           {ROWS.map((seat) => (
             <tr key={seat}>
-              <th className="text-left font-semibold text-slate-600" title={tr.seatNames[seat]}>
+              <th scope="row" title={tr.seatNames[seat]}>
                 {tr.seats[seat]}
               </th>
               {STRAINS.map((strain) => {
@@ -68,11 +52,7 @@ export function DdTable({ result, size = 'sm' }: DdTableProps) {
                 return (
                   <td
                     key={strain}
-                    className={`${cell} rounded border font-semibold ${
-                      isPar
-                        ? 'border-yellow-500 bg-yellow-300 text-slate-900'
-                        : 'border-amber-200 bg-amber-50 text-slate-800'
-                    }`}
+                    className={isPar ? 'is-par' : level === null ? 'is-none' : undefined}
                   >
                     {level ?? '–'}
                   </td>
@@ -82,8 +62,8 @@ export function DdTable({ result, size = 'sm' }: DdTableProps) {
           ))}
         </tbody>
       </table>
-      <p className="mt-1 text-slate-700">
-        <span className="font-semibold">{tr.dd.par}:</span> {formatPar(result.par)}
+      <p className="bh-dd-par">
+        {tr.dd.par}: <SuitText text={formatPar(result.par)} />
       </p>
     </div>
   )

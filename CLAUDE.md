@@ -28,6 +28,15 @@ Ağır işler (el üretimi, DDS) Web Worker'da. Veri Firestore'da, yayın Fireba
 - Teknik kimlikler ASCII: paket adı, Firebase proje kimliği ve URL `brichane`; "Briçhane" yalnızca arayüzde.
 - `.env` git'e girmez; Firebase ayarları `VITE_FIREBASE_*` değişkenleriyle.
 
+## Tasarım sistemi (`design/`, `src/styles/`)
+
+- Claude Design'dan gelen sistem `design/` altında (README, `tokens.json`, bileşen tanımları, logolar, renk sembolleri). Kaynak belge; Prettier dışında.
+- Değerler `src/styles/tokens.css` (iki tema: Kâğıt açık / Gece koyu, `prefers-color-scheme`), bileşen stilleri `src/styles/components.css` (`bh-*` sınıfları). Tailwind'de `bg-paper`, `text-ink-muted`, `border-line` vb. bu değerlere bağlı.
+- Arayüz parçaları `src/components/ui/` (Button, Field/Input/Select/TextArea, Checkbox, Tag, Notice, Progress, Modal, Suit, SuitText, Mark). Renk sembolleri yazı tipi karakteri değil `Suit` SVG'si; metindeki ♠♥♦♣ için `SuitText`.
+- **Koşullu sınıflar için `cx()` kullan** (`ui/cx.ts`): Prettier'ın Tailwind eklentisi `className` içindeki metinlerin baştaki boşluğunu silip sınıfları yapıştırıyor.
+- Yeni renk/ölçü eklemeden önce `design/tokens.json`'a bak; `slate-`, `emerald-` gibi hazır Tailwind renkleri kullanılmaz.
+- Yazı tipleri `src/styles/fonts/` (IBM Plex Sans, Source Serif 4; OFL). PDF yine DejaVu kullanır (jsPDF woff2 okumaz), renkleri tasarımdan.
+
 ## Motor (`src/engine/`) özeti
 
 - Kart = `suit * 13 + rank`; renk sırası ♠ ♥ ♦ ♣ (0–3), rank 0 = 2 … 12 = A. `Deal = Record<Seat, Hand>`.

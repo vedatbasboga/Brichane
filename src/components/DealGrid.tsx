@@ -16,35 +16,30 @@ interface DealGridProps {
   dd?: (DdResult | undefined)[]
 }
 
-/** Board kartları ızgarası; karta tıklayınca büyük görünüm açılır. */
+/** Board kartları ızgarası; telefonda tek sütun, genişte 2–4. Karta tıklayınca büyük görünüm. */
 export function DealGrid({ deals, focusOnly, onOpen, badge, dd }: DealGridProps) {
   return (
-    <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+    <ul className="bh-board-grid">
       {deals.map((deal, index) => (
         <li key={deal.board}>
           <article
+            className="bh-board is-clickable"
+            tabIndex={0}
             onClick={() => onOpen(index)}
-            className="flex h-full cursor-pointer flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition hover:border-emerald-400 hover:shadow"
+            onKeyDown={(event) => event.key === 'Enter' && onOpen(index)}
           >
-            <header className="flex items-center justify-between gap-2">
-              <h3 className="text-xs font-medium text-slate-500">{dealCaption(deal)}</h3>
-              <div className="flex items-center gap-1">
+            <div className="bh-board-head">
+              <span className="bh-board-title">{dealCaption(deal)}</span>
+              <span className="bh-board-head-end">
                 {badge?.(deal)}
-                <button
-                  type="button"
-                  onClick={(event) => {
-                    event.stopPropagation()
-                    onOpen(index)
-                  }}
-                  className="rounded px-2 py-0.5 text-xs font-medium text-emerald-700 hover:bg-emerald-50"
-                >
+                <span className="bh-board-open" aria-hidden="true">
                   {tr.board.open}
-                </button>
-              </div>
-            </header>
+                </span>
+              </span>
+            </div>
             <DealCard deal={deal} focusOnly={focusOnly} />
             {dd && !focusOnly && (
-              <div className="mt-auto border-t border-slate-100 pt-2">
+              <div className="bh-board-dd">
                 <DdTable result={dd[index]} />
               </div>
             )}

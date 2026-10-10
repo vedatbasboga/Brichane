@@ -19,6 +19,7 @@ export const tr = {
   shapes: { balanced: 'Dengeli', 'semi-balanced': 'Yarı dengeli', unbalanced: 'Dengesiz' },
 
   nav: {
+    label: 'Ana gezinme',
     generate: 'El Atölyesi',
     sets: 'Setlerim',
   },
@@ -146,6 +147,7 @@ export const tr = {
     ddsJs: 'DDS’in WebAssembly sürümü: bridge-dds, Christopher Book — Apache 2.0 lisansı.',
     jspdf: 'PDF oluşturma: jsPDF — MIT lisansı.',
     dejavu: 'PDF yazı tipi: DejaVu Sans — serbest lisans (Bitstream Vera türevi).',
+    fonts: 'Arayüz yazı tipleri: IBM Plex Sans ve Source Serif 4 — SIL Open Font License.',
   },
 
   board: {

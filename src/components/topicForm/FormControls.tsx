@@ -29,7 +29,7 @@ export function NumberField({ value, min, max, label, onChange }: NumberFieldPro
         const n = Number(raw)
         if (raw !== '' && Number.isInteger(n) && n >= min && n <= max) onChange(n)
       }}
-      className="w-16 rounded-md border border-slate-300 px-2 py-1.5 text-center text-slate-900"
+      className="bh-input bh-input-num"
     />
   )
 }
@@ -47,7 +47,7 @@ export function RangeField({ label, name, value, bounds, onChange }: RangeFieldP
   const invalid = value[0] > value[1]
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="min-w-28 text-sm text-slate-700">{label}</span>
+      <span className="text-ink inline-flex min-w-28 items-center gap-1 text-sm">{label}</span>
       <NumberField
         label={`${name} ${tr.editor.min}`}
         value={value[0]}
@@ -55,7 +55,7 @@ export function RangeField({ label, name, value, bounds, onChange }: RangeFieldP
         max={bounds[1]}
         onChange={(n) => onChange([n, value[1]])}
       />
-      <span className={invalid ? 'text-red-600' : 'text-slate-400'}>–</span>
+      <span className={invalid ? 'text-danger-ink' : 'text-ink-muted'}>–</span>
       <NumberField
         label={`${name} ${tr.editor.max}`}
         value={value[1]}
@@ -84,7 +84,7 @@ export function ChipGroup<T extends string>({
   onChange,
 }: ChipGroupProps<T>) {
   return (
-    <div role="group" aria-label={label} className="flex flex-wrap gap-1.5">
+    <div role="group" aria-label={label} className="bh-chips">
       {options.map((option) => {
         const active = selected.includes(option)
         return (
@@ -99,11 +99,7 @@ export function ChipGroup<T extends string>({
                   : options.filter((o) => o === option || selected.includes(o)),
               )
             }
-            className={`rounded-full border px-3 py-1 text-sm transition ${
-              active
-                ? 'border-emerald-700 bg-emerald-100 font-semibold text-emerald-900 ring-1 ring-emerald-700'
-                : 'border-slate-300 bg-white text-slate-700 hover:border-emerald-500'
-            }`}
+            className="bh-chip"
           >
             {render(option)}
           </button>
@@ -119,13 +115,13 @@ interface FieldProps {
   children: ReactNode
 }
 
-/** Başlık + içerik + yardım metni. */
+/** Birden fazla kontrol içeren form grubu: başlık + içerik + ipucu. */
 export function Field({ label, help, children }: FieldProps) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <span className="text-sm font-medium text-slate-700">{label}</span>
+    <div className="bh-field">
+      <span className="bh-field-label">{label}</span>
       {children}
-      {help && <p className="text-xs text-slate-500">{help}</p>}
+      {help && <p className="bh-field-hint">{help}</p>}
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Link, NavLink, Route, Routes } from 'react-router'
+import { Mark } from './components/ui/Mark'
 import { tr } from './i18n/tr'
 import { GeneratePage } from './pages/GeneratePage'
 
@@ -9,18 +10,19 @@ const SetDetailPage = lazy(() => import('./pages/SetDetailPage'))
 const AboutPage = lazy(() => import('./pages/AboutPage'))
 
 const navClass = ({ isActive }: { isActive: boolean }) =>
-  `rounded-md px-3 py-1.5 text-sm font-medium ${
-    isActive ? 'bg-emerald-900/40 text-white' : 'text-emerald-100 hover:bg-emerald-900/20'
-  }`
+  `bh-nav-link${isActive ? ' is-active' : ''}`
 
 export default function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-slate-50 text-slate-900">
-        <header className="border-b border-emerald-900/20 bg-emerald-800 text-white">
-          <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
-            <h1 className="text-xl font-bold">{tr.appName}</h1>
-            <nav className="flex gap-1">
+      <div className="flex min-h-screen flex-col">
+        <header className="bh-topbar">
+          <div className="bh-topbar-inner">
+            <Link to="/" className="bh-brand">
+              <Mark size={28} />
+              <span className="bh-brand-name">{tr.appName}</span>
+            </Link>
+            <nav className="bh-nav" aria-label={tr.nav.label}>
               <NavLink to="/" end className={navClass}>
                 {tr.nav.generate}
               </NavLink>
@@ -30,8 +32,8 @@ export default function App() {
             </nav>
           </div>
         </header>
-        <main className="mx-auto max-w-7xl px-4 py-6">
-          <Suspense fallback={<p className="text-slate-500">{tr.sets.loading}</p>}>
+        <main className="bh-page w-full flex-1">
+          <Suspense fallback={<p className="bh-muted">{tr.sets.loading}</p>}>
             <Routes>
               <Route path="/" element={<GeneratePage />} />
               <Route path="/sets" element={<SetsPage />} />
@@ -41,8 +43,8 @@ export default function App() {
             </Routes>
           </Suspense>
         </main>
-        <footer className="mx-auto max-w-7xl px-4 pb-6 text-sm text-slate-500">
-          <Link to="/about" className="hover:text-slate-700 hover:underline">
+        <footer className="mx-auto w-full max-w-[var(--content-max)] px-4 pb-6 text-[13px] sm:px-6">
+          <Link to="/about" className="text-ink-muted hover:text-ink hover:underline">
             {tr.about.link}
           </Link>
         </footer>

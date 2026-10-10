@@ -1,5 +1,6 @@
 import { isVulnerable, type Seat, type Vulnerability } from '../engine'
 import { tr } from '../i18n/tr'
+import { cx } from './ui/cx'
 
 interface CompassBoxProps {
   board: number
@@ -8,42 +9,35 @@ interface CompassBoxProps {
   size?: 'sm' | 'lg'
 }
 
-const EDGE_POSITION: Record<Seat, string> = {
-  N: 'col-span-3 row-start-1',
-  W: 'col-start-1 row-start-2',
-  E: 'col-start-3 row-start-2',
-  S: 'col-span-3 row-start-3',
+const EDGE_CLASS: Record<Seat, string> = {
+  N: 'bh-bbox-n',
+  E: 'bh-bbox-e',
+  S: 'bh-bbox-s',
+  W: 'bh-bbox-w',
 }
 
-/** Board numarası; zon olan kenarlar kırmızı, dağıtıcı altı çizili. */
+/** Board kutusu: ortada numara; zonlu tarafın kenarları işaretli, dağıtıcının harfi altı çizili. */
 export function CompassBox({ board, dealer, vul, size = 'sm' }: CompassBoxProps) {
-  const large = size === 'lg'
   return (
     <div
-      className={`grid shrink-0 overflow-hidden rounded-md border border-slate-300 font-semibold ${
-        large
-          ? 'size-28 grid-cols-[1.75rem_1fr_1.75rem] grid-rows-[1.75rem_1fr_1.75rem] text-sm'
-          : 'size-20 grid-cols-[1.25rem_1fr_1.25rem] grid-rows-[1.25rem_1fr_1.25rem] text-xs'
-      }`}
+      className={cx('bh-bbox', size === 'lg' && 'bh-bbox-lg')}
+      role="img"
       aria-label={`${tr.board.board} ${board}, ${tr.board.dealer} ${tr.seatNames[dealer]}, ${tr.vulnerability[vul]}`}
     >
-      {(['N', 'W', 'E', 'S'] as const).map((seat) => (
+      {(['N', 'E', 'S', 'W'] as const).map((seat) => (
         <span
           key={seat}
-          className={`flex items-center justify-center ${EDGE_POSITION[seat]} ${
-            isVulnerable(vul, seat) ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-500'
-          } ${seat === dealer ? 'underline decoration-2 underline-offset-2' : ''}`}
-          aria-hidden
+          className={cx(
+            'bh-bbox-edge',
+            EDGE_CLASS[seat],
+            isVulnerable(vul, seat) && 'is-vul',
+            seat === dealer && 'is-dealer',
+          )}
         >
           {tr.seats[seat]}
         </span>
       ))}
-      <span
-        className={`col-start-2 row-start-2 flex items-center justify-center bg-white text-slate-900 ${large ? 'text-3xl' : 'text-xl'}`}
-        aria-hidden
-      >
-        {board}
-      </span>
+      <span className="bh-bbox-num">{board}</span>
     </div>
   )
 }

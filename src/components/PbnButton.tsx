@@ -2,6 +2,7 @@ import { downloadText } from '../export/download'
 import { exportFileName } from '../export/pdfLayout'
 import { buildPbnFile, type PbnExportOptions } from '../export/pbnFile'
 import { tr } from '../i18n/tr'
+import { Button } from './ui/Button'
 
 interface PbnButtonProps {
   /** Tıklama anında çağrılır; o ana kadar biten çift kukla sonuçları dahil edilir. */
@@ -19,13 +20,8 @@ export function PbnButton({ getOptions }: PbnButtonProps) {
   }
 
   return (
-    <button
-      type="button"
-      onClick={handleClick}
-      title={tr.pbn.help}
-      className="rounded-md border border-emerald-700 px-4 py-1.5 text-sm font-semibold text-emerald-800 hover:bg-emerald-50"
-    >
+    <Button onClick={handleClick} title={tr.pbn.help}>
       {tr.pbn.download}
-    </button>
+    </Button>
   )
 }

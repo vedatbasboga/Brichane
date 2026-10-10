@@ -8,6 +8,12 @@ import { PdfButton } from '../components/PdfButton'
 import { SaveSetDialog } from '../components/SaveSetDialog'
 import { ShareButton } from '../components/ShareButton'
 import { TopicSelect } from '../components/TopicSelect'
+import { Button } from '../components/ui/Button'
+import { Checkbox } from '../components/ui/Checkbox'
+import { Field, Input } from '../components/ui/Field'
+import { Notice } from '../components/ui/Notice'
+import { Progress } from '../components/ui/Progress'
+import { SuitText } from '../components/ui/SuitText'
 import { buildNewSet, defaultSetTitle } from '../data/savedSet'
 import { parseShareParams, toShareParams, type ShareWarning } from '../data/shareLink'
 import { draftToRecipe, recipeToDraft, type TopicDraft } from '../data/topicDraft'
@@ -143,14 +149,21 @@ export function GeneratePage() {
     )
   }
 
+  const progressLabel =
+    state.status === 'running' && state.progress
+      ? `${tr.generate.running} ${tr.generate.progress(state.progress.found, state.progress.count)} · ${tr.generate.attempts(state.progress.attempts)}`
+      : tr.generate.running
+
   return (
     <div className="flex flex-col gap-6">
+      <h1 className="bh-display">{tr.generate.title}</h1>
+
       <form
         onSubmit={handleSubmit}
-        className="grid gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-[3fr_1fr_auto] sm:items-start"
+        className="bh-panel grid gap-4 sm:grid-cols-[minmax(0,3fr)_minmax(0,1fr)_auto] sm:items-start"
       >
-        <div className="flex flex-col gap-1">
-          <label htmlFor="topic" className="text-sm font-medium text-slate-700">
+        <div className="bh-field">
+          <label htmlFor="topic" className="bh-field-label">
             {tr.generate.topic}
           </label>
           <TopicSelect
@@ -160,26 +173,30 @@ export function GeneratePage() {
             onChange={handleTopicChange}
           />
           {isCustom ? (
-            <p className="text-xs text-slate-500">
+            <p className="bh-field-hint">
               {tr.generate.customSummary}{' '}
               <button
                 type="button"
                 onClick={() => setCustomOpen(true)}
-                className="font-medium whitespace-nowrap text-emerald-700 hover:underline"
+                className="bh-link whitespace-nowrap"
               >
                 {tr.generate.customEdit}
               </button>
             </p>
           ) : (
-            preset.description && <p className="text-xs text-slate-500">{preset.description}</p>
+            preset.description && (
+              <p className="bh-field-hint">
+                <SuitText text={preset.description} />
+              </p>
+            )
           )}
         </div>
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="count" className="text-sm font-medium text-slate-700">
-            {tr.generate.count}
-          </label>
-          <input
+        <Field
+          label={tr.generate.count}
+          error={countValid ? undefined : tr.generate.countInvalid(MAX_DEALS)}
+        >
+          <Input
             id="count"
             type="number"
             inputMode="numeric"
@@ -187,31 +204,23 @@ export function GeneratePage() {
             max={MAX_DEALS}
             value={countText}
             onChange={(event) => setCountText(event.target.value)}
-            aria-invalid={!countValid}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 aria-invalid:border-red-500"
           />
-          {!countValid && (
-            <p className="text-xs text-red-600">{tr.generate.countInvalid(MAX_DEALS)}</p>
-          )}
-        </div>
+        </Field>
 
-        <div className="flex flex-col gap-1 sm:pt-6">
+        <div className="sm:pt-[22px]">
           {running ? (
-            <button
-              type="button"
-              onClick={cancel}
-              className="rounded-md border border-slate-300 px-5 py-2 font-semibold text-slate-700 hover:bg-slate-50"
-            >
+            <Button onClick={cancel} className="w-full sm:w-auto">
               {tr.generate.cancel}
-            </button>
+            </Button>
           ) : (
-            <button
+            <Button
+              variant="primary"
               type="submit"
               disabled={!countValid}
-              className="rounded-md bg-emerald-700 px-5 py-2 font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
+              className="w-full sm:w-auto"
             >
               {tr.generate.submit}
-            </button>
+            </Button>
           )}
         </div>
       </form>
@@ -229,84 +238,62 @@ export function GeneratePage() {
       )}
 
       {linkNotice && (
-        <p className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
-          {tr.share[linkNotice]}
-        </p>
+        <Notice tone={linkNotice === 'invalid' ? 'warning' : 'info'}>{tr.share[linkNotice]}</Notice>
       )}
 
       {state.status === 'running' && (
-        <div className="flex flex-col gap-1">
-          <div
-            role="progressbar"
-            aria-valuemin={0}
-            aria-valuemax={state.progress?.count ?? count}
-            aria-valuenow={state.progress?.found ?? 0}
-            className="h-2 overflow-hidden rounded-full bg-slate-200"
-          >
-            <div
-              className="h-full bg-emerald-600 transition-[width]"
-              style={{
-                width: `${state.progress ? (state.progress.found / state.progress.count) * 100 : 0}%`,
-              }}
-            />
-          </div>
-          <p className="text-sm text-slate-600">
-            {tr.generate.running}{' '}
-            {state.progress &&
-              `${tr.generate.progress(state.progress.found, state.progress.count)} · ${tr.generate.attempts(state.progress.attempts)}`}
-          </p>
-        </div>
+        <Progress
+          value={state.progress?.found ?? 0}
+          max={state.progress?.count ?? count}
+          label={progressLabel}
+        />
       )}
 
       {state.status === 'error' && (
-        <p className="rounded-md bg-red-50 p-3 text-sm text-red-700">
+        <Notice tone="danger">
           {tr.generate.error} {state.message}
-        </p>
+        </Notice>
       )}
 
-      {state.status === 'idle' && !sharedTarget && (
-        <p className="text-center text-slate-500">{tr.generate.empty}</p>
-      )}
+      {state.status === 'idle' && !sharedTarget && <Notice>{tr.generate.empty}</Notice>}
 
       {result && generatedWith && (
         <section className="flex flex-col gap-4">
           {result.status === 'exhausted' && (
-            <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
-              <p className="font-semibold">{tr.generate.exhausted}</p>
+            <Notice tone="warning" title={tr.generate.exhausted}>
               {result.deals.length > 0 && (
                 <p>{tr.generate.exhaustedPartial(result.deals.length, generatedWith.count)}</p>
               )}
               <p>{tr.generate.observed(result.observedProbability, result.attempts)}</p>
-            </div>
+            </Notice>
           )}
 
           {result.deals.length > 0 && (
             <>
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <span className="flex flex-wrap items-baseline gap-x-3 text-sm">
-                  <span className="font-semibold text-slate-900">
+                <p className="m-0 flex flex-wrap items-baseline gap-x-3">
+                  <span className="font-semibold">
                     {generatedWith.recipe.name} · {tr.generate.summary(result.deals.length)}
                   </span>
                   {dd.error ? (
-                    <span className="text-red-700">
+                    <span className="text-danger-ink text-[13px]">
                       {tr.dd.error} {dd.error}
                     </span>
                   ) : (
                     !ddComplete && (
-                      <span className="text-slate-500">{tr.dd.progress(dd.done, dd.total)}</span>
+                      <span className="text-ink-muted text-[13px] tabular-nums">
+                        {tr.dd.progress(dd.done, dd.total)}
+                      </span>
                     )
                   )}
-                </span>
-                <div className="flex flex-wrap items-center gap-3">
-                  <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-700">
-                    <input
-                      type="checkbox"
-                      checked={focusOnly}
-                      onChange={(event) => setFocusOnly(event.target.checked)}
-                      className="size-4 accent-emerald-700"
-                    />
-                    {tr.generate.focusOnly}
-                  </label>
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Checkbox
+                    checked={focusOnly}
+                    onChange={(event) => setFocusOnly(event.target.checked)}
+                    label={tr.generate.focusOnly}
+                    className="mr-2"
+                  />
                   {shareUrl && <ShareButton url={shareUrl} title={generatedWith.recipe.name} />}
                   <PdfButton
                     getOptions={() => ({
@@ -327,27 +314,23 @@ export function GeneratePage() {
                       sourceUrl: shareUrl ?? undefined,
                     })}
                   />
-                  {savedSetId ? (
-                    <span className="text-sm text-emerald-800">
-                      {tr.save.saved}{' '}
-                      <Link
-                        to={`/sets/${savedSetId}`}
-                        className="font-semibold underline hover:text-emerald-950"
-                      >
-                        {tr.save.open}
-                      </Link>
-                    </span>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => setSaveOpen(true)}
-                      className="rounded-md bg-emerald-700 px-4 py-1.5 text-sm font-semibold text-white hover:bg-emerald-800"
-                    >
-                      {tr.save.button}
-                    </button>
+                  {!savedSetId && (
+                    <Button onClick={() => setSaveOpen(true)}>{tr.save.button}</Button>
                   )}
                 </div>
               </div>
+
+              {savedSetId && (
+                <Notice
+                  tone="success"
+                  title={tr.save.saved}
+                  action={
+                    <Link to={`/sets/${savedSetId}`} className="bh-link">
+                      {tr.save.open}
+                    </Link>
+                  }
+                />
+              )}
 
               <DealGrid
                 deals={result.deals}

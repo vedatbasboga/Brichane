@@ -1,3 +1,4 @@
+import { Mark } from '../components/ui/Mark'
 import { tr } from '../i18n/tr'
 
 const CREDITS = [
@@ -5,24 +6,23 @@ const CREDITS = [
   { text: tr.about.ddsJs, url: 'https://github.com/bookchris/bridge-dds-js' },
   { text: tr.about.jspdf, url: 'https://github.com/parallax/jsPDF' },
   { text: tr.about.dejavu, url: 'https://dejavu-fonts.github.io/' },
+  { text: tr.about.fonts, url: 'https://openfontlicense.org/' },
 ]
 
 export default function AboutPage() {
   return (
-    <article className="flex max-w-2xl flex-col gap-4">
-      <h2 className="text-2xl font-bold text-slate-900">{tr.about.title}</h2>
-      <p className="text-slate-700">{tr.about.intro}</p>
-      <h3 className="text-lg font-semibold text-slate-900">{tr.about.creditsTitle}</h3>
-      <ul className="list-disc space-y-2 pl-5 text-slate-700">
+    <article className="flex max-w-2xl flex-col gap-5">
+      <div className="flex items-center gap-3">
+        <Mark size={48} />
+        <h1 className="bh-display">{tr.about.title}</h1>
+      </div>
+      <p className="m-0">{tr.about.intro}</p>
+      <h2 className="bh-heading">{tr.about.creditsTitle}</h2>
+      <ul className="m-0 flex list-disc flex-col gap-2 pl-5">
         {CREDITS.map((credit) => (
           <li key={credit.url}>
             {credit.text}{' '}
-            <a
-              href={credit.url}
-              target="_blank"
-              rel="noreferrer"
-              className="break-all text-emerald-700 hover:underline"
-            >
+            <a href={credit.url} target="_blank" rel="noreferrer" className="bh-link break-all">
               {credit.url}
             </a>
           </li>

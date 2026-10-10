@@ -1,7 +1,8 @@
 import { PAIRS, SEATS, SUITS, type Seat } from '../../engine'
 import type { TopicDraft } from '../../data/topicDraft'
 import { tr } from '../../i18n/tr'
-import { SuitSymbol } from '../SuitSymbol'
+import { Field as LabeledField, Select } from '../ui/Field'
+import { Suit } from '../ui/Suit'
 import { ChipGroup, Field } from './FormControls'
 import { PairEditor } from './PairEditor'
 import { SeatEditor } from './SeatEditor'
@@ -11,47 +12,43 @@ interface TopicFormProps {
   onChange: (draft: TopicDraft) => void
 }
 
-const selectClass = 'w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900'
-
 export function TopicForm({ draft, onChange }: TopicFormProps) {
   const set = (patch: Partial<TopicDraft>) => onChange({ ...draft, ...patch })
 
   return (
-    <div className="flex flex-col gap-6">
-      <section className="grid gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-2">
-        <h2 className="text-lg font-semibold text-slate-900 md:col-span-2">{tr.editor.general}</h2>
-        <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium text-slate-700">{tr.editor.dealer}</span>
-          <select
+    <div className="flex flex-col gap-4">
+      <section className="bh-panel grid gap-4 md:grid-cols-2">
+        <h3 className="bh-heading md:col-span-2">{tr.editor.general}</h3>
+        <LabeledField label={tr.editor.dealer} hint={tr.editor.dealerHelp}>
+          <Select
             value={draft.dealer}
             onChange={(event) => set({ dealer: event.target.value as Seat })}
-            className={selectClass}
           >
             {SEATS.map((seat) => (
               <option key={seat} value={seat}>
                 {tr.seatNames[seat]}
               </option>
             ))}
-          </select>
-          <span className="text-xs text-slate-500">{tr.editor.dealerHelp}</span>
-        </label>
-        <fieldset className="flex flex-col gap-1.5">
-          <legend className="mb-1.5 text-sm font-medium text-slate-700">
-            {tr.editor.placement}
-          </legend>
+          </Select>
+        </LabeledField>
+        <fieldset className="bh-field">
+          <legend className="bh-field-label mb-1.5">{tr.editor.placement}</legend>
           {(['balanced', 'fixed'] as const).map((placement) => (
-            <label key={placement} className="flex cursor-pointer items-center gap-2 text-sm">
+            <label
+              key={placement}
+              className="flex min-h-8 cursor-pointer items-center gap-2 text-sm"
+            >
               <input
                 type="radio"
                 name="placement"
                 checked={draft.placement === placement}
                 onChange={() => set({ placement })}
-                className="accent-emerald-700"
+                className="size-4 accent-[var(--felt)]"
               />
               {placement === 'balanced' ? tr.editor.placementBalanced : tr.editor.placementFixed}
             </label>
           ))}
-          <span className="text-xs text-slate-500">{tr.editor.placementHelp}</span>
+          <p className="bh-field-hint">{tr.editor.placementHelp}</p>
         </fieldset>
         <div className="md:col-span-2">
           <Field label={tr.editor.topicSuit} help={tr.editor.topicSuitHelp}>
@@ -59,7 +56,7 @@ export function TopicForm({ draft, onChange }: TopicFormProps) {
               label={tr.editor.topicSuit}
               options={SUITS}
               selected={draft.topicSuits}
-              render={(suit) => <SuitSymbol suit={suit} className="text-base" />}
+              render={(suit) => <Suit suit={suit} size={16} />}
               onChange={(topicSuits) => set({ topicSuits })}
             />
           </Field>

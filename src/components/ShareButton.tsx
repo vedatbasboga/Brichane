@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { tr } from '../i18n/tr'
+import { Button } from './ui/Button'
 
 interface ShareButtonProps {
   url: string
@@ -31,12 +32,8 @@ export function ShareButton({ url, title }: ShareButtonProps) {
   }
 
   return (
-    <button
-      type="button"
-      onClick={handleClick}
-      className="rounded-md border border-emerald-700 px-4 py-1.5 text-sm font-semibold text-emerald-800 hover:bg-emerald-50"
-    >
+    <Button variant="quiet" onClick={handleClick}>
       {copied ? tr.share.copied : tr.share.button}
-    </button>
+    </Button>
   )
 }

@@ -1,6 +1,9 @@
 // Board'ları A4 PDF olarak indirir (sayfa başına 6 board). jsPDF ve yazı tipi
 // yalnızca bu modül yüklendiğinde (PDF indir'e basılınca) indirilir.
+// Görünüm tasarım sistemindeki baskı kurallarına uyar (design/README.md → Yazdırma):
+// beyaz kâğıt, açık tema renkleri, kenarlar line-strong, par hücresi sarı, başlıkta tek renk logo.
 
+import logoUrl from '../assets/brichane-lockup-ink.svg?url'
 import boldFontUrl from 'dejavu-fonts-ttf/ttf/DejaVuSansCondensed-Bold.ttf?url'
 import regularFontUrl from 'dejavu-fonts-ttf/ttf/DejaVuSansCondensed.ttf?url'
 import { jsPDF } from 'jspdf'
@@ -11,8 +14,8 @@ import {
   STRAINS,
   STRAIN_SYMBOLS,
   SUITS,
-  contractLevel,
   SUIT_SYMBOLS,
+  contractLevel,
   handBySuit,
   hcp,
   isVulnerable,
@@ -30,8 +33,8 @@ import {
   BOARDS_PER_PAGE,
   PAGE,
   boardCells,
-  pageCount,
   exportFileName,
+  pageCount,
   type Rect,
 } from './pdfLayout'
 
@@ -52,44 +55,45 @@ export interface DealsPdfOptions {
 type Rgb = [number, number, number]
 
 const FONT = 'DejaVu'
-const COLOR: Record<
-  | 'text'
-  | 'muted'
-  | 'red'
-  | 'hcp'
-  | 'border'
-  | 'box'
-  | 'white'
-  | 'cellFill'
-  | 'cellBorder'
-  | 'parFill'
-  | 'parBorder',
-  Rgb
-> = {
-  text: [15, 23, 42],
-  muted: [100, 116, 139],
-  red: [220, 38, 38],
-  hcp: [4, 120, 87],
-  border: [203, 213, 225],
-  box: [241, 245, 249],
+
+// Tasarım değerleri (açık tema), design/tokens.json.
+const COLOR = {
+  ink: [28, 30, 27],
+  inkMuted: [89, 88, 79],
+  line: [217, 208, 190],
+  lineStrong: [133, 125, 107],
+  sunken: [237, 231, 218],
+  suitRed: [180, 35, 24],
+  vuln: [192, 54, 44],
+  onVuln: [255, 255, 255],
+  par: [243, 213, 100],
   white: [255, 255, 255],
-  cellFill: [255, 251, 235],
-  cellBorder: [253, 230, 138],
-  parFill: [253, 224, 71],
-  parBorder: [234, 179, 8],
+} satisfies Record<string, Rgb>
+
+const SUIT_COLOR: Record<Suit, Rgb> = {
+  S: COLOR.ink,
+  H: COLOR.suitRed,
+  D: COLOR.suitRed,
+  C: COLOR.ink,
 }
-const SUIT_COLOR: Record<Suit, Rgb> = { S: COLOR.text, H: COLOR.red, D: COLOR.red, C: COLOR.text }
-const STRAIN_COLOR: Record<Strain, Rgb> = { ...SUIT_COLOR, N: COLOR.text }
+const STRAIN_COLOR: Record<Strain, Rgb> = { ...SUIT_COLOR, N: COLOR.ink }
 
 const LINE_H = 3.9
 const HAND_FONT = 9
 const SYMBOL_W = 3.6
 const COMPASS = 17
+/** Logonun PDF'teki boyu (mm) ve SVG en-boy oranı (239 × 56). */
+const LOGO_H = 6.5
+const LOGO_W = (LOGO_H * 239) / 56
 
 const dateFormat = new Intl.DateTimeFormat('tr-TR', { dateStyle: 'medium' })
 
 export async function downloadDealsPdf(options: DealsPdfOptions): Promise<void> {
-  const [regular, bold] = await Promise.all([loadFont(regularFontUrl), loadFont(boldFontUrl)])
+  const [regular, bold, logo] = await Promise.all([
+    loadFont(regularFontUrl),
+    loadFont(boldFontUrl),
+    rasterizeSvg(logoUrl, LOGO_W, LOGO_H).catch(() => null),
+  ])
   const doc = new jsPDF({ unit: 'mm', format: 'a4', compress: true })
   doc.addFileToVFS('DejaVu.ttf', regular)
   doc.addFont('DejaVu.ttf', FONT, 'normal')
@@ -101,7 +105,7 @@ export async function downloadDealsPdf(options: DealsPdfOptions): Promise<void> 
   const cells = boardCells()
   for (let page = 0; page < pages; page++) {
     if (page > 0) doc.addPage()
-    drawHeader(doc, options, page === 0)
+    drawHeader(doc, options, page === 0, logo)
     const first = page * BOARDS_PER_PAGE
     options.deals.slice(first, first + BOARDS_PER_PAGE).forEach((deal, i) => {
       const dd = options.focusOnly ? undefined : options.dd?.[first + i]
@@ -123,17 +127,35 @@ async function loadFont(url: string): Promise<string> {
   return btoa(binary)
 }
 
+/** SVG'yi baskı çözünürlüğünde (≈ 600 dpi) PNG'ye çevirir; jsPDF SVG çizemez. */
+async function rasterizeSvg(url: string, widthMm: number, heightMm: number): Promise<string> {
+  const pxPerMm = 600 / 25.4
+  const image = new Image()
+  image.src = url
+  await image.decode()
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.round(widthMm * pxPerMm)
+  canvas.height = Math.round(heightMm * pxPerMm)
+  const context = canvas.getContext('2d')
+  if (!context) throw new Error('canvas')
+  context.drawImage(image, 0, 0, canvas.width, canvas.height)
+  return canvas.toDataURL('image/png')
+}
+
 function setText(doc: jsPDF, color: Rgb, size: number, style: 'normal' | 'bold' = 'normal') {
   doc.setTextColor(...color)
   doc.setFontSize(size)
   doc.setFont(FONT, style)
 }
 
-function drawHeader(doc: jsPDF, options: DealsPdfOptions, firstPage: boolean) {
+function drawHeader(doc: jsPDF, options: DealsPdfOptions, firstPage: boolean, logo: string | null) {
   const x = PAGE.margin
-  const maxW = PAGE.w - 2 * PAGE.margin
-  setText(doc, COLOR.text, 14, 'bold')
-  doc.text(fit(doc, options.title, maxW), x, PAGE.margin + 5)
+  const fullW = PAGE.w - 2 * PAGE.margin
+  const titleW = logo ? fullW - LOGO_W - 6 : fullW
+  if (logo) doc.addImage(logo, 'PNG', PAGE.w - PAGE.margin - LOGO_W, PAGE.margin, LOGO_W, LOGO_H)
+
+  setText(doc, COLOR.ink, 14, 'bold')
+  doc.text(fit(doc, options.title, titleW), x, PAGE.margin + 5)
 
   const parts = [
     `${tr.pdf.topic}: ${options.topicName}`,
@@ -141,18 +163,18 @@ function drawHeader(doc: jsPDF, options: DealsPdfOptions, firstPage: boolean) {
     dateFormat.format(options.date ?? new Date()),
   ]
   if (options.focusOnly) parts.push(tr.generate.focusOnly)
-  setText(doc, COLOR.muted, 8.5)
-  doc.text(fit(doc, parts.join(' · '), maxW), x, PAGE.margin + 10.5)
+  setText(doc, COLOR.inkMuted, 8.5)
+  doc.text(fit(doc, parts.join(' · '), titleW), x, PAGE.margin + 10.5)
 
   if (firstPage && options.notes?.trim()) {
-    setText(doc, COLOR.text, 8.5)
-    doc.text(fit(doc, options.notes.trim().replace(/\s+/g, ' '), maxW), x, PAGE.margin + 15.5)
+    setText(doc, COLOR.ink, 8.5)
+    doc.text(fit(doc, options.notes.trim().replace(/\s+/g, ' '), fullW), x, PAGE.margin + 15.5)
   }
 }
 
 function drawFooter(doc: jsPDF, page: number, pages: number, shareUrl?: string) {
   const y = PAGE.h - PAGE.margin - 1
-  setText(doc, COLOR.muted, 7.5)
+  setText(doc, COLOR.inkMuted, 7.5)
   const pageLabel = tr.pdf.page(page, pages)
   const available = PAGE.w - 2 * PAGE.margin - doc.getTextWidth(pageLabel) - 6
   // Kısaltılmış bağlantı işe yaramaz; sığmıyorsa yalnızca uygulama adı yazılır.
@@ -176,11 +198,11 @@ function drawBoard(
   focusOnly: boolean,
   dd: DdResult | undefined,
 ) {
-  doc.setDrawColor(...COLOR.border)
+  doc.setDrawColor(...COLOR.line)
   doc.setLineWidth(0.3)
-  doc.roundedRect(cell.x, cell.y, cell.w, cell.h, 2, 2, 'S')
+  doc.roundedRect(cell.x, cell.y, cell.w, cell.h, 2.6, 2.6, 'S')
 
-  setText(doc, COLOR.muted, 7.5)
+  setText(doc, COLOR.ink, 7.5)
   doc.text(dealCaption(deal), cell.x + 3, cell.y + 5)
 
   const pad = 3
@@ -211,46 +233,54 @@ function drawBoard(
   }
 }
 
+/** Tasarımdaki tablo: ince çizgiler, başlık satırı ve sütunu gölgeli, par hücresi sarı. */
 function drawDdTable(doc: jsPDF, dd: DdResult, x: number, y: number, w: number) {
-  const labelW = 3.5
+  const labelW = 4
   const cellW = (w - labelW) / STRAINS.length
-  const rowH = 3.1
+  const rowH = 3.3
   const par = parCells(dd.par)
+  const seats = ['N', 'S', 'E', 'W'] as const
+
+  doc.setLineWidth(0.15)
+  doc.setDrawColor(...COLOR.line)
+  // Başlık satırı ve koltuk sütunu zemini.
+  doc.setFillColor(...COLOR.sunken)
+  doc.rect(x, y, w, rowH, 'FD')
+  doc.rect(x, y + rowH, labelW, rowH * seats.length, 'FD')
+
   STRAINS.forEach((strain, i) => {
-    setText(doc, STRAIN_COLOR[strain], 6.5, 'bold')
-    doc.text(STRAIN_SYMBOLS[strain], x + labelW + (i + 0.5) * cellW, y + 3, { align: 'center' })
+    const cx = x + labelW + (i + 0.5) * cellW
+    setText(doc, STRAIN_COLOR[strain], 6.3, 'bold')
+    doc.text(STRAIN_SYMBOLS[strain], cx, y + rowH / 2, { align: 'center', baseline: 'middle' })
   })
-  ;(['N', 'S', 'E', 'W'] as const).forEach((seat, r) => {
-    const baseline = y + 3 + (r + 1) * rowH
-    setText(doc, COLOR.muted, 6.5, 'bold')
-    doc.text(tr.seats[seat], x, baseline)
+  seats.forEach((seat, r) => {
+    const cy = y + rowH * (r + 1)
+    setText(doc, COLOR.ink, 6.3, 'bold')
+    doc.text(tr.seats[seat], x + labelW / 2, cy + rowH / 2, { align: 'center', baseline: 'middle' })
     STRAINS.forEach((strain, i) => {
+      const cx = x + labelW + i * cellW
       const isPar = par.has(`${seat}${strain}`)
-      doc.setFillColor(...(isPar ? COLOR.parFill : COLOR.cellFill))
-      doc.setDrawColor(...(isPar ? COLOR.parBorder : COLOR.cellBorder))
-      doc.setLineWidth(0.15)
-      doc.roundedRect(
-        x + labelW + i * cellW + 0.25,
-        baseline - 2.3,
-        cellW - 0.5,
-        rowH - 0.35,
-        0.4,
-        0.4,
-        'FD',
-      )
+      doc.setFillColor(...(isPar ? COLOR.par : COLOR.white))
+      doc.rect(cx, cy, cellW, rowH, 'FD')
       const level = contractLevel(dd.tricks[seat][strain])
-      setText(doc, COLOR.text, 6.5, 'bold')
-      doc.text(level === null ? '–' : String(level), x + labelW + (i + 0.5) * cellW, baseline, {
+      setText(doc, level === null ? COLOR.inkMuted : COLOR.ink, 6.3, isPar ? 'bold' : 'normal')
+      doc.text(level === null ? '–' : String(level), cx + cellW / 2, cy + rowH / 2, {
         align: 'center',
+        baseline: 'middle',
       })
     })
   })
+  // Başlık hücrelerinin ara çizgileri.
+  for (let i = 0; i <= STRAINS.length; i++) {
+    const lx = x + labelW + i * cellW
+    doc.line(lx, y, lx, y + rowH)
+  }
 }
 
 function drawPar(doc: jsPDF, dd: DdResult, x: number, y: number, w: number) {
-  setText(doc, COLOR.muted, 6.5, 'bold')
+  setText(doc, COLOR.inkMuted, 6.5, 'bold')
   doc.text(tr.dd.par, x, y + 3)
-  setText(doc, COLOR.text, 6.5)
+  setText(doc, COLOR.ink, 6.5)
   const lines = dd.par.contracts.length
     ? [...dd.par.contracts.map(formatParContract), formatParScore(dd.par.score)]
     : [tr.dd.passOut]
@@ -266,11 +296,15 @@ function drawHand(
   maxW: number,
   hidden: boolean,
 ) {
-  setText(doc, COLOR.muted, 7.5, 'bold')
+  setText(doc, COLOR.ink, 7.5, 'bold')
   doc.text(tr.seats[seat], x, y + 3)
-  if (hidden) return
+  if (hidden) {
+    setText(doc, COLOR.inkMuted, 7.5)
+    doc.text(tr.board.hidden, x, y + 3 + LINE_H)
+    return
+  }
   const labelW = doc.getTextWidth(tr.seats[seat] + ' ')
-  setText(doc, COLOR.hcp, 7.5, 'bold')
+  setText(doc, COLOR.inkMuted, 7.5)
   doc.text(`${hcp(hand)} ${tr.hcp}`, x + labelW, y + 3)
 
   const bySuit = handBySuit(hand)
@@ -281,7 +315,7 @@ function drawHand(
 
     const ranks = bySuit[suit].map(rankLabel)
     const available = maxW - SYMBOL_W - 1
-    setText(doc, COLOR.text, HAND_FONT)
+    setText(doc, ranks.length ? COLOR.ink : COLOR.inkMuted, HAND_FONT)
     let text = ranks.join(' ') || '—'
     // Uzun renkler sütuna sığmazsa önce boşluklar kalkar, sonra yazı küçülür.
     if (doc.getTextWidth(text) > available) text = ranks.join('')
@@ -291,6 +325,7 @@ function drawHand(
   })
 }
 
+/** Board kutusu: gölgeli zemin, zonlu kenarlar kırmızı, dağıtıcı kalın ve altı çizili. */
 function drawCompass(
   doc: jsPDF,
   x: number,
@@ -300,7 +335,9 @@ function drawCompass(
   vul: Vulnerability,
 ) {
   const size = COMPASS
-  const edge = size * 0.24
+  const edge = size * 0.2
+  doc.setFillColor(...COLOR.sunken)
+  doc.rect(x, y, size, size, 'F')
   const edges: Record<Seat, Rect> = {
     N: { x, y, w: size, h: edge },
     S: { x, y: y + size - edge, w: size, h: edge },
@@ -310,25 +347,27 @@ function drawCompass(
   for (const seat of ['N', 'E', 'S', 'W'] as const) {
     const r = edges[seat]
     const vulnerable = isVulnerable(vul, seat)
-    doc.setFillColor(...(vulnerable ? COLOR.red : COLOR.box))
-    doc.rect(r.x, r.y, r.w, r.h, 'F')
-    setText(doc, vulnerable ? COLOR.white : COLOR.muted, 6, 'bold')
+    if (vulnerable) {
+      doc.setFillColor(...COLOR.vuln)
+      doc.rect(r.x, r.y, r.w, r.h, 'F')
+    }
+    const isDealer = seat === dealer
+    const color = vulnerable ? COLOR.onVuln : isDealer ? COLOR.ink : COLOR.inkMuted
+    setText(doc, color, 5.5, 'bold')
     const cx = r.x + r.w / 2
     const cy = r.y + r.h / 2
     doc.text(tr.seats[seat], cx, cy, { align: 'center', baseline: 'middle' })
-    if (seat === dealer) {
+    if (isDealer) {
       const w = doc.getTextWidth(tr.seats[seat])
-      doc.setDrawColor(...(vulnerable ? COLOR.white : COLOR.muted))
+      doc.setDrawColor(...color)
       doc.setLineWidth(0.3)
-      doc.line(cx - w / 2, cy + 1.2, cx + w / 2, cy + 1.2)
+      doc.line(cx - w / 2, cy + 1.1, cx + w / 2, cy + 1.1)
     }
   }
-  doc.setFillColor(...COLOR.white)
-  doc.rect(x + edge, y + edge, size - 2 * edge, size - 2 * edge, 'F')
-  doc.setDrawColor(...COLOR.border)
+  doc.setDrawColor(...COLOR.lineStrong)
   doc.setLineWidth(0.3)
-  doc.rect(x, y, size, size, 'S')
-  setText(doc, COLOR.text, 11, 'bold')
+  doc.roundedRect(x, y, size, size, 0.8, 0.8, 'S')
+  setText(doc, COLOR.ink, 12, 'bold')
   doc.text(String(board), x + size / 2, y + size / 2, { align: 'center', baseline: 'middle' })
 }
 

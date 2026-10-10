@@ -1,7 +1,8 @@
 import { SUITS, type Pair } from '../../engine'
 import { LENGTH_BOUNDS, PAIR_HCP_BOUNDS, type PairDraft } from '../../data/topicDraft'
 import { tr } from '../../i18n/tr'
-import { SuitSymbol } from '../SuitSymbol'
+import { Checkbox } from '../ui/Checkbox'
+import { Suit } from '../ui/Suit'
 import { ChipGroup, Field, RangeField } from './FormControls'
 
 interface PairEditorProps {
@@ -16,20 +17,20 @@ export function PairEditor({ pair, draft, onChange }: PairEditorProps) {
 
   return (
     <section
-      className={`flex flex-col gap-4 rounded-xl border p-4 ${
-        draft.enabled ? 'border-emerald-300 bg-white' : 'border-slate-200 bg-slate-50'
+      className={`flex flex-col gap-4 rounded-[var(--radius-lg)] border p-4 ${
+        draft.enabled ? 'border-line-strong bg-surface' : 'border-line bg-transparent'
       }`}
     >
-      <label className="flex cursor-pointer items-center gap-2">
-        <input
-          type="checkbox"
-          checked={draft.enabled}
-          onChange={(event) => set({ enabled: event.target.checked })}
-          className="size-4 accent-emerald-700"
-        />
-        <span className="font-semibold text-slate-900">{title}</span>
-        <span className="text-sm text-slate-500">— {tr.editor.pairEnabled}</span>
-      </label>
+      <Checkbox
+        checked={draft.enabled}
+        onChange={(event) => set({ enabled: event.target.checked })}
+        label={
+          <span className="flex flex-wrap items-baseline gap-x-2">
+            <span className="bh-heading">{title}</span>
+            <span className="text-ink-muted text-[13px]">{tr.editor.pairEnabled}</span>
+          </span>
+        }
+      />
 
       {draft.enabled && (
         <>
@@ -52,7 +53,7 @@ export function PairEditor({ pair, draft, onChange }: PairEditorProps) {
               label={`${title} ${tr.editor.fitSuits}`}
               options={SUITS}
               selected={draft.fitSuits}
-              render={(suit) => <SuitSymbol suit={suit} className="text-base" />}
+              render={(suit) => <Suit suit={suit} size={16} />}
               onChange={(fitSuits) => set({ fitSuits })}
             />
           </Field>

@@ -1,6 +1,10 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import { MAX_NOTES_LENGTH, MAX_TITLE_LENGTH } from '../data/savedSet'
 import { tr } from '../i18n/tr'
+import { Button } from './ui/Button'
+import { Field, Input, TextArea } from './ui/Field'
+import { Modal } from './ui/Modal'
+import { Notice } from './ui/Notice'
 
 interface SaveSetDialogProps {
   defaultTitle: string
@@ -8,22 +12,20 @@ interface SaveSetDialogProps {
   onCancel: () => void
 }
 
+const FORM_ID = 'save-set-form'
+
 /** Set adı ve genel not sorar; açıkken render edilir. */
 export function SaveSetDialog({ defaultTitle, onSave, onCancel }: SaveSetDialogProps) {
-  const dialogRef = useRef<HTMLDialogElement>(null)
   const [title, setTitle] = useState(defaultTitle)
   const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
+  const [titleError, setTitleError] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    dialogRef.current?.showModal()
-  }, [])
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
     if (!title.trim()) {
-      setError(tr.save.titleRequired)
+      setTitleError(true)
       return
     }
     setSaving(true)
@@ -37,58 +39,49 @@ export function SaveSetDialog({ defaultTitle, onSave, onCancel }: SaveSetDialogP
   }
 
   return (
-    <dialog
-      ref={dialogRef}
-      onCancel={(event) => {
-        event.preventDefault()
-        if (!saving) onCancel()
-      }}
-      aria-labelledby="save-set-title"
-      className="m-auto w-[min(32rem,calc(100vw-1rem))] rounded-xl bg-white p-0 shadow-xl backdrop:bg-slate-900/60"
+    <Modal
+      title={tr.save.title}
+      showClose={false}
+      onClose={() => !saving && onCancel()}
+      footer={
+        <>
+          <Button variant="quiet" onClick={onCancel} disabled={saving}>
+            {tr.save.cancel}
+          </Button>
+          <Button
+            variant="primary"
+            type="submit"
+            form={FORM_ID}
+            busy={saving}
+            busyLabel={tr.save.saving}
+          >
+            {tr.save.submit}
+          </Button>
+        </>
+      }
     >
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-4 sm:p-6">
-        <h2 id="save-set-title" className="text-lg font-semibold text-slate-900">
-          {tr.save.title}
-        </h2>
-        <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium text-slate-700">{tr.save.setTitle}</span>
-          <input
+      <form id={FORM_ID} onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <Field label={tr.save.setTitle} error={titleError ? tr.save.titleRequired : undefined}>
+          <Input
             value={title}
             maxLength={MAX_TITLE_LENGTH}
-            onChange={(event) => setTitle(event.target.value)}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900"
+            onChange={(event) => {
+              setTitle(event.target.value)
+              setTitleError(false)
+            }}
           />
-        </label>
-        <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium text-slate-700">{tr.save.notes}</span>
-          <textarea
+        </Field>
+        <Field label={tr.save.notes}>
+          <TextArea
             value={notes}
             maxLength={MAX_NOTES_LENGTH}
             rows={3}
             placeholder={tr.save.notesPlaceholder}
             onChange={(event) => setNotes(event.target.value)}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900"
           />
-        </label>
-        {error && <p className="text-sm text-red-700">{error}</p>}
-        <div className="flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={saving}
-            className="rounded-md px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 disabled:opacity-50"
-          >
-            {tr.save.cancel}
-          </button>
-          <button
-            type="submit"
-            disabled={saving}
-            className="rounded-md bg-emerald-700 px-5 py-2 font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
-          >
-            {saving ? tr.save.saving : tr.save.submit}
-          </button>
-        </div>
+        </Field>
+        {error && <Notice tone="danger">{error}</Notice>}
       </form>
-    </dialog>
+    </Modal>
   )
 }

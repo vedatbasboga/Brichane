@@ -5,6 +5,11 @@ import { DealGrid } from '../components/DealGrid'
 import { PbnButton } from '../components/PbnButton'
 import { PdfButton } from '../components/PdfButton'
 import { ShareButton } from '../components/ShareButton'
+import { Button } from '../components/ui/Button'
+import { Checkbox } from '../components/ui/Checkbox'
+import { Field, Input, TextArea } from '../components/ui/Field'
+import { Notice } from '../components/ui/Notice'
+import { Tag } from '../components/ui/Tag'
 import {
   MAX_BOARD_NOTE_LENGTH,
   MAX_NOTES_LENGTH,
@@ -52,10 +57,10 @@ export default function SetDetailPage() {
     }
   }, [id])
 
-  if (state.status === 'loading') return <p className="text-slate-500">{tr.sets.loading}</p>
-  if (state.status === 'missing') return <p className="text-slate-700">{tr.sets.notFound}</p>
+  if (state.status === 'loading') return <p className="bh-muted">{tr.sets.loading}</p>
+  if (state.status === 'missing') return <Notice>{tr.sets.notFound}</Notice>
   if (state.status === 'error') {
-    return <p className="text-red-700">{`${tr.sets.loadError} ${state.message}`}</p>
+    return <Notice tone="danger">{`${tr.sets.loadError} ${state.message}`}</Notice>
   }
   return <SetDetail key={state.set.id} initialSet={state.set} initialNotes={state.boardNotes} />
 }
@@ -137,103 +142,84 @@ function SetDetail({ initialSet, initialNotes }: SetDetailProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      <Link to="/sets" className="text-sm font-medium text-slate-600 hover:underline">
+      <Link to="/sets" className="bh-link self-start text-sm">
         ← {tr.sets.back}
       </Link>
 
-      <section className="grid gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-2">
-        <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium text-slate-700">{tr.sets.setTitle}</span>
-          <input
+      <section className="bh-panel flex flex-col gap-4">
+        <Field label={tr.sets.setTitle}>
+          <Input
             value={title}
             maxLength={MAX_TITLE_LENGTH}
             onChange={(event) => setTitle(event.target.value)}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-lg font-semibold text-slate-900"
+            className="bh-title-input"
           />
-        </label>
-        <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 self-end text-sm">
-          <dt className="text-slate-500">{tr.sets.topic}</dt>
-          <dd className="text-slate-900">{set.topicName}</dd>
+        </Field>
+        <p className="text-ink-muted m-0 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px]">
+          <span>
+            {tr.sets.topic}: <span className="text-ink">{set.topicName}</span>
+          </span>
           {set.createdAt && (
-            <>
-              <dt className="text-slate-500">{tr.sets.created}</dt>
-              <dd className="text-slate-900">{dateFormat.format(set.createdAt)}</dd>
-            </>
+            <span>
+              · {tr.sets.created}:{' '}
+              <span className="text-ink tabular-nums">{dateFormat.format(set.createdAt)}</span>
+            </span>
           )}
-        </dl>
-        <label className="flex flex-col gap-1.5 md:col-span-2">
-          <span className="text-sm font-medium text-slate-700">{tr.sets.notes}</span>
-          <textarea
+          {set.archived && <Tag tone="archived">{tr.sets.archived}</Tag>}
+        </p>
+        <Field label={tr.sets.notes}>
+          <TextArea
             value={notes}
             maxLength={MAX_NOTES_LENGTH}
             rows={3}
             onChange={(event) => setNotes(event.target.value)}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900"
           />
-        </label>
-        <div className="flex flex-wrap items-center gap-3 md:col-span-2">
-          <button
-            type="button"
-            disabled={!dirty || busy}
+        </Field>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="primary"
+            disabled={!dirty}
+            busy={busy}
+            busyLabel={tr.sets.saving}
             onClick={saveChanges}
-            className="rounded-md bg-emerald-700 px-4 py-2 font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
           >
-            {busy ? tr.sets.saving : tr.sets.saveChanges}
-          </button>
-          <button
-            type="button"
-            disabled={busy}
-            onClick={duplicate}
-            className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-          >
+            {tr.sets.saveChanges}
+          </Button>
+          <Button variant="quiet" disabled={busy} onClick={duplicate}>
             {tr.sets.copy}
-          </button>
-          <button
-            type="button"
-            disabled={busy}
-            onClick={toggleArchived}
-            className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-          >
+          </Button>
+          <Button variant="quiet" disabled={busy} onClick={toggleArchived}>
             {set.archived ? tr.sets.unarchive : tr.sets.archive}
-          </button>
-          {set.archived && (
-            <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-800">
-              {tr.sets.archived}
-            </span>
-          )}
-          {message && (
-            <span
-              className={`text-sm ${message.kind === 'ok' ? 'text-emerald-700' : 'text-red-700'}`}
-            >
-              {message.text}
-            </span>
+          </Button>
+          {message?.kind === 'ok' && (
+            <span className="text-felt text-sm font-semibold">{message.text}</span>
           )}
         </div>
+        {message?.kind === 'error' && <Notice tone="danger">{message.text}</Notice>}
       </section>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <span className="flex flex-wrap items-baseline gap-x-3 text-sm">
-          <span className="font-semibold text-slate-900">{tr.sets.boards(set.count)}</span>
+        <p className="m-0 flex flex-wrap items-baseline gap-x-3">
+          <span className="font-semibold">{tr.sets.boards(set.count)}</span>
           {dd.error ? (
-            <span className="text-red-700">
+            <span className="text-danger-ink text-[13px]">
               {tr.dd.error} {dd.error}
             </span>
           ) : (
             dd.done < dd.total && (
-              <span className="text-slate-500">{tr.dd.progress(dd.done, dd.total)}</span>
+              <span className="text-ink-muted text-[13px] tabular-nums">
+                {tr.dd.progress(dd.done, dd.total)}
+              </span>
             )
           )}
-        </span>
-        <div className="flex flex-wrap items-center gap-4">
-          <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-700">
-            <input
-              type="checkbox"
-              checked={focusOnly}
-              onChange={(event) => setFocusOnly(event.target.checked)}
-              className="size-4 accent-emerald-700"
-            />
-            {tr.generate.focusOnly}
-          </label>
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <Checkbox
+            checked={focusOnly}
+            onChange={(event) => setFocusOnly(event.target.checked)}
+            label={tr.generate.focusOnly}
+            className="mr-2"
+          />
           <ShareButton url={setUrl} title={set.title} />
           <PdfButton
             getOptions={() => ({
@@ -266,13 +252,7 @@ function SetDetail({ initialSet, initialNotes }: SetDetailProps) {
         focusOnly={focusOnly}
         onOpen={setSelected}
         dd={dd.results}
-        badge={(deal) =>
-          boardNotes[deal.board] ? (
-            <span className="rounded bg-sky-100 px-1.5 py-0.5 text-xs text-sky-800">
-              {tr.sets.hasNote}
-            </span>
-          ) : null
-        }
+        badge={(deal) => (boardNotes[deal.board] ? <Tag tone="note">{tr.sets.hasNote}</Tag> : null)}
       />
 
       <DealDialog
@@ -317,36 +297,37 @@ function BoardNoteEditor({ initial, onSave }: BoardNoteEditorProps) {
   }
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor="board-note" className="text-sm font-medium text-slate-700">
-        {tr.sets.boardNote}
-      </label>
-      <textarea
-        id="board-note"
-        value={text}
-        maxLength={MAX_BOARD_NOTE_LENGTH}
-        rows={3}
-        placeholder={tr.sets.boardNotePlaceholder}
-        onChange={(event) => {
-          setText(event.target.value)
-          setStatus('idle')
-        }}
-        className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900"
-      />
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          disabled={text === initial || status === 'saving'}
+    <section className="flex flex-col gap-2">
+      <Field label={tr.sets.boardNote}>
+        <TextArea
+          value={text}
+          maxLength={MAX_BOARD_NOTE_LENGTH}
+          rows={3}
+          placeholder={tr.sets.boardNotePlaceholder}
+          onChange={(event) => {
+            setText(event.target.value)
+            setStatus('idle')
+          }}
+        />
+      </Field>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button
+          variant="primary"
+          size="sm"
+          disabled={text === initial}
+          busy={status === 'saving'}
+          busyLabel={tr.sets.saving}
           onClick={handleSave}
-          className="rounded-md bg-emerald-700 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
         >
-          {status === 'saving' ? tr.sets.saving : tr.sets.saveBoardNote}
-        </button>
+          {tr.sets.saveBoardNote}
+        </Button>
         {status === 'saved' && (
-          <span className="text-sm text-emerald-700">{tr.sets.boardNoteSaved}</span>
+          <span className="text-felt text-sm font-semibold">{tr.sets.boardNoteSaved}</span>
         )}
-        {status === 'error' && <span className="text-sm text-red-700">{tr.sets.actionError}</span>}
+        {status === 'error' && (
+          <span className="text-danger-ink text-sm">{tr.sets.actionError}</span>
+        )}
       </div>
-    </div>
+    </section>
   )
 }

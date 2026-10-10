@@ -1,6 +1,7 @@
 import { CUSTOM_TOPIC_ID, groupByCategory } from '../data/topics'
 import type { Recipe } from '../engine'
 import { tr } from '../i18n/tr'
+import { Select } from './ui/Field'
 
 interface TopicSelectProps {
   id: string
@@ -12,12 +13,7 @@ interface TopicSelectProps {
 /** Kategoriye göre gruplanmış konu seçici; en altta "Özel dağılım…". */
 export function TopicSelect({ id, topics, value, onChange }: TopicSelectProps) {
   return (
-    <select
-      id={id}
-      value={value}
-      onChange={(event) => onChange(event.target.value)}
-      className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900"
-    >
+    <Select id={id} value={value} onChange={(event) => onChange(event.target.value)}>
       {groupByCategory(topics, (topic) => topic.category).map(([category, items]) => (
         <optgroup key={category} label={category}>
           {items.map((topic) => (
@@ -30,6 +26,6 @@ export function TopicSelect({ id, topics, value, onChange }: TopicSelectProps) {
       <optgroup label={tr.generate.customGroup}>
         <option value={CUSTOM_TOPIC_ID}>{tr.generate.customOption}</option>
       </optgroup>
-    </select>
+    </Select>
   )
 }

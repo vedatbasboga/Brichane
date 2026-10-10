@@ -9,21 +9,20 @@ interface DealCardProps {
   size?: 'sm' | 'lg'
 }
 
-const HAND_POSITION: Record<Seat, string> = {
-  N: 'col-start-2 row-start-1',
-  W: 'col-start-1 row-start-2',
-  E: 'col-start-3 row-start-2',
-  S: 'col-start-2 row-start-3',
+// Izgara alanları tasarımdaki koltuk harfleriyle adlandırılmış (K üst, B sol, D sağ, G alt).
+const AREA: Record<Seat, string> = {
+  N: 'bh-board-K',
+  W: 'bh-board-B',
+  E: 'bh-board-D',
+  S: 'bh-board-G',
 }
 
-/** Klasik pusula düzeni: K üstte, G altta, B/D yanlarda. */
+/** Pusula düzeni: K üstte, G altta, B/D yanlarda, ortada board kutusu. */
 export function DealCard({ deal, focusOnly, size = 'sm' }: DealCardProps) {
   return (
-    <div
-      className={`grid grid-cols-3 items-center ${size === 'lg' ? 'gap-x-4 gap-y-3' : 'gap-x-2 gap-y-2'}`}
-    >
+    <div className="bh-board-compass">
       {(['N', 'W', 'E', 'S'] as const).map((seat) => (
-        <div key={seat} className={`${HAND_POSITION[seat]} min-w-0`}>
+        <div key={seat} className={AREA[seat]}>
           <HandView
             hand={deal.hands[seat]}
             seat={seat}
@@ -32,7 +31,7 @@ export function DealCard({ deal, focusOnly, size = 'sm' }: DealCardProps) {
           />
         </div>
       ))}
-      <div className="col-start-2 row-start-2 flex justify-center">
+      <div className="bh-board-C">
         <CompassBox board={deal.board} dealer={deal.dealer} vul={deal.vul} size={size} />
       </div>
     </div>

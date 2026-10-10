@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import type { SavedSet } from '../data/savedSet'
+import { Button } from '../components/ui/Button'
+import { buttonClass } from '../components/ui/buttonClass'
+import { Checkbox } from '../components/ui/Checkbox'
+import { cx } from '../components/ui/cx'
+import { Notice } from '../components/ui/Notice'
+import { Tag } from '../components/ui/Tag'
 import { copySet, deleteSet, listSets, loadBoardNotes, updateSet } from '../firebase/sets'
 import { tr } from '../i18n/tr'
 
@@ -83,94 +89,77 @@ export default function SetsPage() {
     }
   }
 
-  if (state.status === 'loading') return <p className="text-slate-500">{tr.sets.loading}</p>
+  if (state.status === 'loading') return <p className="bh-muted">{tr.sets.loading}</p>
   if (state.status === 'error') {
-    return <p className="text-red-700">{`${tr.sets.loadError} ${state.message}`}</p>
+    return <Notice tone="danger">{`${tr.sets.loadError} ${state.message}`}</Notice>
   }
 
   const visible = state.sets.filter((set) => showArchived || !set.archived)
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-2xl font-bold text-slate-900">{tr.sets.title}</h2>
-        <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
-          <input
-            type="checkbox"
-            checked={showArchived}
-            onChange={(event) => setShowArchived(event.target.checked)}
-            className="size-4 accent-emerald-700"
-          />
-          {tr.sets.showArchived}
-        </label>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <h1 className="bh-display">{tr.sets.title}</h1>
+        <Checkbox
+          checked={showArchived}
+          onChange={(event) => setShowArchived(event.target.checked)}
+          label={tr.sets.showArchived}
+        />
       </div>
 
       {actionError && (
-        <p className="rounded-md bg-red-50 p-3 text-sm text-red-700">
+        <Notice tone="danger">
           {tr.sets.actionError} {actionError}
-        </p>
+        </Notice>
       )}
 
       {visible.length === 0 ? (
-        <p className="text-slate-500">{tr.sets.empty}</p>
+        <Notice>{tr.sets.empty}</Notice>
       ) : (
-        <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white shadow-sm">
+        <ul className="bh-setlist">
           {visible.map((set) => (
-            <li
-              key={set.id}
-              className={`flex flex-wrap items-center justify-between gap-3 p-3 ${set.archived ? 'opacity-60' : ''}`}
-            >
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Link
-                    to={`/sets/${set.id}`}
-                    className="font-medium text-slate-900 hover:text-emerald-800 hover:underline"
-                  >
+            <li key={set.id} className={cx('bh-setitem', set.archived && 'is-archived')}>
+              <div className="bh-setitem-main">
+                <div className="bh-setitem-titlerow">
+                  <Link to={`/sets/${set.id}`} className="bh-setitem-title">
                     {set.title}
                   </Link>
-                  {set.archived && (
-                    <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-800">
-                      {tr.sets.archived}
-                    </span>
-                  )}
+                  {set.archived && <Tag tone="archived">{tr.sets.archived}</Tag>}
                 </div>
-                <p className="text-sm text-slate-500">
+                <p className="bh-setitem-meta">
                   {set.topicName} · {tr.sets.boards(set.count)}
                   {set.createdAt && ` · ${dateFormat.format(set.createdAt)}`}
                 </p>
-                {set.notes && <p className="line-clamp-2 text-sm text-slate-600">{set.notes}</p>}
+                {set.notes && <p className="bh-setitem-note">{set.notes}</p>}
               </div>
-              <div className="flex flex-wrap gap-1">
-                <Link
-                  to={`/sets/${set.id}`}
-                  className="rounded-md px-2.5 py-1 text-sm font-medium text-emerald-700 hover:bg-emerald-50"
-                >
+              <div className="bh-setitem-actions">
+                <Link to={`/sets/${set.id}`} className={buttonClass('secondary', 'sm')}>
                   {tr.sets.open}
                 </Link>
-                <button
-                  type="button"
+                <Button
+                  size="sm"
+                  variant="quiet"
                   disabled={busyId === set.id}
                   onClick={() => duplicate(set)}
-                  className="rounded-md px-2.5 py-1 text-sm font-medium text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
                 >
                   {tr.sets.copy}
-                </button>
-                <button
-                  type="button"
+                </Button>
+                <Button
+                  size="sm"
+                  variant="quiet"
                   disabled={busyId === set.id}
                   onClick={() => toggleArchived(set)}
-                  className="rounded-md px-2.5 py-1 text-sm font-medium text-slate-600 hover:bg-slate-100 disabled:opacity-50"
                 >
                   {set.archived ? tr.sets.unarchive : tr.sets.archive}
-                </button>
-                <button
-                  type="button"
+                </Button>
+                <Button
+                  size="sm"
+                  variant="danger"
                   disabled={busyId === set.id}
                   onClick={() => remove(set)}
-                  className="rounded-md px-2.5 py-1 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
                 >
                   {tr.sets.delete}
-                </button>
+                </Button>
               </div>
             </li>
           ))}
