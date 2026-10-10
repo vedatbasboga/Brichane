@@ -80,6 +80,16 @@ export const tr = {
     error: 'Kaydedilemedi:',
   },
 
+  dd: {
+    title: 'Çift kukla analizi',
+    help: 'Dört el açık ve hatasız oyunla her deklarenin her kozda alacağı löve.',
+    computing: 'Çift kukla hesaplanıyor…',
+    progress: (done: number, total: number) => `Çift kukla: ${done}/${total}`,
+    par: 'Par',
+    passOut: 'Pas',
+    error: 'Çift kukla hesaplanamadı:',
+  },
+
   pdf: {
     download: 'PDF indir',
     preparing: 'Hazırlanıyor…',
@@ -117,6 +127,18 @@ export const tr = {
     boardNoteSaved: 'Not kaydedildi.',
     hasNote: 'Not var',
     actionError: 'İşlem başarısız:',
+  },
+
+  about: {
+    link: 'Hakkında',
+    title: 'Hakkında',
+    intro:
+      'Briçhane, briç derslerinde kullanılmak üzere konuya göre el üreten, çift kukla analizi yapan ve setleri PDF olarak veren bir uygulamadır.',
+    creditsTitle: 'Kullanılan açık kaynak yazılımlar',
+    dds: 'Çift kukla analizi: DDS (Double Dummy Solver), Bo Haglund ve Søren Hein — Apache 2.0 lisansı.',
+    ddsJs: 'DDS’in WebAssembly sürümü: bridge-dds, Christopher Book — Apache 2.0 lisansı.',
+    jspdf: 'PDF oluşturma: jsPDF — MIT lisansı.',
+    dejavu: 'PDF yazı tipi: DejaVu Sans — serbest lisans (Bitstream Vera türevi).',
   },
 
   board: {

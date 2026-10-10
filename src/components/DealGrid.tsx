@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 import type { DealView } from '../data/savedSet'
+import type { DdResult } from '../engine'
 import { tr } from '../i18n/tr'
+import { DdTable } from './DdTable'
 import { DealCard } from './DealCard'
 import { dealCaption } from './format'
 
@@ -10,10 +12,12 @@ interface DealGridProps {
   onOpen: (index: number) => void
   /** Başlığın yanında gösterilecek ek işaret (örn. "Not var"). */
   badge?: (deal: DealView) => ReactNode
+  /** Çift kukla sonuçları (board sırasıyla); verilirse kartın altında gösterilir. */
+  dd?: (DdResult | undefined)[]
 }
 
 /** Board kartları ızgarası; karta tıklayınca büyük görünüm açılır. */
-export function DealGrid({ deals, focusOnly, onOpen, badge }: DealGridProps) {
+export function DealGrid({ deals, focusOnly, onOpen, badge, dd }: DealGridProps) {
   return (
     <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
       {deals.map((deal, index) => (
@@ -39,6 +43,11 @@ export function DealGrid({ deals, focusOnly, onOpen, badge }: DealGridProps) {
               </div>
             </header>
             <DealCard deal={deal} focusOnly={focusOnly} />
+            {dd && !focusOnly && (
+              <div className="mt-auto border-t border-slate-100 pt-2">
+                <DdTable result={dd[index]} />
+              </div>
+            )}
           </article>
         </li>
       ))}

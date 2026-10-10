@@ -41,6 +41,8 @@ function fromSnapshot(snap: DocumentSnapshot): SavedSet {
     count: data.count,
     deals: data.deals ?? [],
     notes: data.notes ?? '',
+    dd: data.dd,
+    par: data.par,
     archived: data.archived === true,
     createdAt: toDate(data.createdAt),
     updatedAt: toDate(data.updatedAt),
@@ -79,6 +81,11 @@ export async function updateSet(
   })
 }
 
+/** Çift kukla sonuçlarını sete bir kez yazar (kurallar yalnızca henüz yoksa izin verir). */
+export async function saveSetDd(id: string, dd: Required<Pick<SavedSet, 'dd' | 'par'>>) {
+  await updateDoc(doc(db, SETS, id), { dd: dd.dd, par: dd.par, updatedAt: serverTimestamp() })
+}
+
 /** Board numarası → not metni. */
 export async function loadBoardNotes(setId: string): Promise<Record<number, string>> {
   const snap = await getDocs(collection(db, SETS, setId, BOARD_NOTES))
@@ -109,6 +116,7 @@ export async function copySet(
     count: set.count,
     deals: set.deals,
     notes: set.notes,
+    ...(set.dd && set.par ? { dd: set.dd, par: set.par } : {}),
   })
   const entries = Object.entries(boardNotes).filter(([, text]) => text)
   if (entries.length) {

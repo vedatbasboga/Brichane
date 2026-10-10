@@ -4,17 +4,22 @@
 import boldFontUrl from 'dejavu-fonts-ttf/ttf/DejaVuSansCondensed-Bold.ttf?url'
 import regularFontUrl from 'dejavu-fonts-ttf/ttf/DejaVuSansCondensed.ttf?url'
 import { jsPDF } from 'jspdf'
+import { formatParContract, formatParScore } from '../components/ddFormat'
 import { dealCaption } from '../components/format'
 import type { DealView } from '../data/savedSet'
 import {
+  STRAINS,
+  STRAIN_SYMBOLS,
   SUITS,
   SUIT_SYMBOLS,
   handBySuit,
   hcp,
   isVulnerable,
   rankLabel,
+  type DdResult,
   type Hand,
   type Seat,
+  type Strain,
   type Suit,
   type Vulnerability,
 } from '../engine'
@@ -27,6 +32,8 @@ export interface DealsPdfOptions {
   deals: DealView[]
   /** Altbilgide tıklanabilir bağlantı (sığarsa); aynı seti yeniden açar. */
   shareUrl?: string
+  /** Çift kukla sonuçları (board sırasıyla); öğrenci kopyasında basılmaz. */
+  dd?: (DdResult | undefined)[]
   /** Sadece konu elleri çizilir (öğrenci kopyası). */
   focusOnly: boolean
   notes?: string
@@ -46,6 +53,7 @@ const COLOR: Record<'text' | 'muted' | 'red' | 'hcp' | 'border' | 'box' | 'white
   white: [255, 255, 255],
 }
 const SUIT_COLOR: Record<Suit, Rgb> = { S: COLOR.text, H: COLOR.red, D: COLOR.red, C: COLOR.text }
+const STRAIN_COLOR: Record<Strain, Rgb> = { ...SUIT_COLOR, N: COLOR.text }
 
 const LINE_H = 3.9
 const HAND_FONT = 9
@@ -68,9 +76,11 @@ export async function downloadDealsPdf(options: DealsPdfOptions): Promise<void> 
   for (let page = 0; page < pages; page++) {
     if (page > 0) doc.addPage()
     drawHeader(doc, options, page === 0)
-    options.deals
-      .slice(page * BOARDS_PER_PAGE, (page + 1) * BOARDS_PER_PAGE)
-      .forEach((deal, i) => drawBoard(doc, deal, cells[i], options.focusOnly))
+    const first = page * BOARDS_PER_PAGE
+    options.deals.slice(first, first + BOARDS_PER_PAGE).forEach((deal, i) => {
+      const dd = options.focusOnly ? undefined : options.dd?.[first + i]
+      drawBoard(doc, deal, cells[i], options.focusOnly, dd)
+    })
     drawFooter(doc, page + 1, pages, options.shareUrl)
   }
   doc.save(pdfFileName(options.title, isoDay(options.date ?? new Date())))
@@ -133,7 +143,13 @@ function isoDay(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 }
 
-function drawBoard(doc: jsPDF, deal: DealView, cell: Rect, focusOnly: boolean) {
+function drawBoard(
+  doc: jsPDF,
+  deal: DealView,
+  cell: Rect,
+  focusOnly: boolean,
+  dd: DdResult | undefined,
+) {
   doc.setDrawColor(...COLOR.border)
   doc.setLineWidth(0.3)
   doc.roundedRect(cell.x, cell.y, cell.w, cell.h, 2, 2, 'S')
@@ -162,6 +178,41 @@ function drawBoard(doc: jsPDF, deal: DealView, cell: Rect, focusOnly: boolean) {
     deal.dealer,
     deal.vul,
   )
+  if (dd) {
+    // Pusula düzeninin boş alt köşeleri: solda par, sağda löve tablosu.
+    drawPar(doc, dd, col(0), row(2), colW)
+    drawDdTable(doc, dd, col(2), row(2), colW)
+  }
+}
+
+function drawDdTable(doc: jsPDF, dd: DdResult, x: number, y: number, w: number) {
+  const labelW = 3.5
+  const cellW = (w - labelW) / STRAINS.length
+  const rowH = 3.1
+  STRAINS.forEach((strain, i) => {
+    setText(doc, STRAIN_COLOR[strain], 6.5, 'bold')
+    doc.text(STRAIN_SYMBOLS[strain], x + labelW + (i + 0.5) * cellW, y + 3, { align: 'center' })
+  })
+  ;(['N', 'S', 'E', 'W'] as const).forEach((seat, r) => {
+    const baseline = y + 3 + (r + 1) * rowH
+    setText(doc, COLOR.muted, 6.5, 'bold')
+    doc.text(tr.seats[seat], x, baseline)
+    STRAINS.forEach((strain, i) => {
+      const tricks = dd.tricks[seat][strain]
+      setText(doc, tricks >= 7 ? COLOR.text : COLOR.muted, 6.5, tricks >= 7 ? 'bold' : 'normal')
+      doc.text(String(tricks), x + labelW + (i + 0.5) * cellW, baseline, { align: 'center' })
+    })
+  })
+}
+
+function drawPar(doc: jsPDF, dd: DdResult, x: number, y: number, w: number) {
+  setText(doc, COLOR.muted, 6.5, 'bold')
+  doc.text(tr.dd.par, x, y + 3)
+  setText(doc, COLOR.text, 6.5)
+  const lines = dd.par.contracts.length
+    ? [...dd.par.contracts.map(formatParContract), formatParScore(dd.par.score)]
+    : [tr.dd.passOut]
+  lines.slice(0, 4).forEach((line, i) => doc.text(fit(doc, line, w - 1), x, y + 3 + (i + 1) * 3.1))
 }
 
 function drawHand(

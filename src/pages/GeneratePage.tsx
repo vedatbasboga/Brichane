@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { CustomTopicDialog } from '../components/CustomTopicDialog'
 import { DealDialog } from '../components/DealDialog'
@@ -11,7 +11,8 @@ import { buildNewSet, defaultSetTitle } from '../data/savedSet'
 import { parseShareParams, toShareParams, type ShareWarning } from '../data/shareLink'
 import { draftToRecipe, recipeToDraft, type TopicDraft } from '../data/topicDraft'
 import { CUSTOM_TOPIC_ID, DEFAULT_TOPICS, MAX_DEALS } from '../data/topics'
-import type { Recipe } from '../engine'
+import { dealToPbn, type Recipe } from '../engine'
+import { useDdAnalysis } from '../hooks/useDdAnalysis'
 import { useDealGenerator } from '../hooks/useDealGenerator'
 import { tr } from '../i18n/tr'
 
@@ -67,6 +68,16 @@ export function GeneratePage() {
     result && generatedWith ? toShareParams({ ...generatedWith, seed: result.seed }) : null
   const shareUrl = shareParams ? `${window.location.origin}/?${shareParams}` : null
 
+  const ddJobs = useMemo(
+    () =>
+      result?.deals.length
+        ? result.deals.map((d) => ({ pbn: dealToPbn(d.hands), dealer: d.dealer, vul: d.vul }))
+        : null,
+    [result],
+  )
+  const dd = useDdAnalysis(ddJobs)
+  const ddComplete = dd.total > 0 && dd.done === dd.total
+
   useEffect(() => {
     if (sharedTarget) {
       const { recipe: sharedRecipe, count: sharedCount, seed } = sharedTarget
@@ -96,7 +107,14 @@ export function GeneratePage() {
     const { createSet } = await import('../firebase/sets')
     const { recipe: savedRecipe, topicId: savedTopicId } = generatedWith
     const id = await createSet(
-      buildNewSet({ title, notes, topicId: savedTopicId, recipe: savedRecipe, result }),
+      buildNewSet({
+        title,
+        notes,
+        topicId: savedTopicId,
+        recipe: savedRecipe,
+        result,
+        dd: ddComplete ? dd.results : undefined,
+      }),
     )
     setSavedSetId(id)
     setSaveOpen(false)
@@ -264,8 +282,19 @@ export function GeneratePage() {
           {result.deals.length > 0 && (
             <>
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <span className="text-sm font-semibold text-slate-900">
-                  {generatedWith.recipe.name} · {tr.generate.summary(result.deals.length)}
+                <span className="flex flex-wrap items-baseline gap-x-3 text-sm">
+                  <span className="font-semibold text-slate-900">
+                    {generatedWith.recipe.name} · {tr.generate.summary(result.deals.length)}
+                  </span>
+                  {dd.error ? (
+                    <span className="text-red-700">
+                      {tr.dd.error} {dd.error}
+                    </span>
+                  ) : (
+                    !ddComplete && (
+                      <span className="text-slate-500">{tr.dd.progress(dd.done, dd.total)}</span>
+                    )
+                  )}
                 </span>
                 <div className="flex flex-wrap items-center gap-3">
                   <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-700">
@@ -283,6 +312,7 @@ export function GeneratePage() {
                       title: generatedWith.recipe.name,
                       topicName: generatedWith.recipe.name,
                       deals: result.deals,
+                      dd: dd.results,
                       focusOnly,
                       shareUrl: shareUrl ?? undefined,
                     })}
@@ -309,7 +339,12 @@ export function GeneratePage() {
                 </div>
               </div>
 
-              <DealGrid deals={result.deals} focusOnly={focusOnly} onOpen={setSelected} />
+              <DealGrid
+                deals={result.deals}
+                focusOnly={focusOnly}
+                onOpen={setSelected}
+                dd={dd.results}
+              />
 
               {saveOpen && (
                 <SaveSetDialog
@@ -325,6 +360,7 @@ export function GeneratePage() {
                 focusOnly={focusOnly}
                 onClose={() => setSelected(null)}
                 onNavigate={setSelected}
+                dd={dd.results}
               />
             </>
           )}

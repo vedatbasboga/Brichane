@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { DealDialog } from '../components/DealDialog'
 import { DealGrid } from '../components/DealGrid'
@@ -8,10 +8,20 @@ import {
   MAX_BOARD_NOTE_LENGTH,
   MAX_NOTES_LENGTH,
   MAX_TITLE_LENGTH,
+  ddFromSaved,
+  ddToSaved,
   fromSavedDeal,
   type SavedSet,
 } from '../data/savedSet'
-import { copySet, getSet, loadBoardNotes, saveBoardNote, updateSet } from '../firebase/sets'
+import {
+  copySet,
+  getSet,
+  loadBoardNotes,
+  saveBoardNote,
+  saveSetDd,
+  updateSet,
+} from '../firebase/sets'
+import { useDdAnalysis } from '../hooks/useDdAnalysis'
 import { tr } from '../i18n/tr'
 
 type LoadState =
@@ -66,6 +76,26 @@ function SetDetail({ initialSet, initialNotes }: SetDetailProps) {
   const [message, setMessage] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null)
 
   const deals = useMemo(() => set.deals.map(fromSavedDeal), [set.deals])
+  // Kayıtlı çift kukla sonuçları varsa doğrudan kullanılır; yoksa hesaplanıp sete bir kez yazılır.
+  const knownDd = useMemo(() => ddFromSaved(set), [set])
+  const ddJobs = useMemo(
+    () => set.deals.map((d) => ({ pbn: d.pbn, dealer: d.dealer, vul: d.vul })),
+    [set.deals],
+  )
+  const dd = useDdAnalysis(ddJobs, knownDd)
+  const ddWritten = useRef(Boolean(set.dd))
+  useEffect(() => {
+    if (ddWritten.current || dd.done !== dd.total) return
+    const saved = ddToSaved(dd.results, set.count)
+    if (!saved?.dd || !saved.par) return
+    ddWritten.current = true
+    const { dd: hex, par } = saved
+    saveSetDd(set.id, { dd: hex, par })
+      .then(() => setSet((current) => ({ ...current, dd: hex, par })))
+      .catch(() => {
+        // Yazılamazsa sonuçlar ekranda kalır; sayfa yeniden açılınca tekrar denenir.
+      })
+  }, [dd.done, dd.total, dd.results, set.id, set.count])
   // Kayıtlı setler herkese okunabilir; set sayfasının adresi paylaşım bağlantısıdır.
   const setUrl = `${window.location.origin}/sets/${set.id}`
   const dirty = title.trim() !== set.title || notes !== set.notes
@@ -181,7 +211,18 @@ function SetDetail({ initialSet, initialNotes }: SetDetailProps) {
       </section>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <span className="font-semibold text-slate-900">{tr.sets.boards(set.count)}</span>
+        <span className="flex flex-wrap items-baseline gap-x-3 text-sm">
+          <span className="font-semibold text-slate-900">{tr.sets.boards(set.count)}</span>
+          {dd.error ? (
+            <span className="text-red-700">
+              {tr.dd.error} {dd.error}
+            </span>
+          ) : (
+            dd.done < dd.total && (
+              <span className="text-slate-500">{tr.dd.progress(dd.done, dd.total)}</span>
+            )
+          )}
+        </span>
         <div className="flex flex-wrap items-center gap-4">
           <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-700">
             <input
@@ -199,6 +240,7 @@ function SetDetail({ initialSet, initialNotes }: SetDetailProps) {
               topicName: set.topicName,
               shareUrl: setUrl,
               deals,
+              dd: dd.results,
               focusOnly,
               notes: set.notes,
               date: set.createdAt,
@@ -211,6 +253,7 @@ function SetDetail({ initialSet, initialNotes }: SetDetailProps) {
         deals={deals}
         focusOnly={focusOnly}
         onOpen={setSelected}
+        dd={dd.results}
         badge={(deal) =>
           boardNotes[deal.board] ? (
             <span className="rounded bg-sky-100 px-1.5 py-0.5 text-xs text-sky-800">
@@ -226,6 +269,7 @@ function SetDetail({ initialSet, initialNotes }: SetDetailProps) {
         focusOnly={focusOnly}
         onClose={() => setSelected(null)}
         onNavigate={setSelected}
+        dd={dd.results}
         renderExtra={(deal) => (
           <BoardNoteEditor
             key={deal.board}

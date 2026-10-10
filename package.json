@@ -16,6 +16,7 @@
     "deploy:preview": "npm run build && firebase hosting:channel:deploy test --expires 7d"
   },
   "dependencies": {
+    "bridge-dds": "^1.4.0",
     "dejavu-fonts-ttf": "^2.37.3",
     "firebase": "^13.0.0",
     "jspdf": "^4.2.1",

@@ -9,10 +9,18 @@ service cloud.firestore {
       return value is string && value.size() >= min && value.size() <= max;
     }
 
+    // Çift kukla: board başına 20 haneli tablo + par; ikisi birlikte ve count kadar.
+    function validDd(d) {
+      return d.dd is list && d.dd.size() == d.count
+        && d.par is list && d.par.size() == d.count;
+    }
+
     function validNewSet(d) {
-      let keys = ['title', 'topicId', 'topicName', 'recipe', 'seed', 'count', 'deals',
-                  'notes', 'archived', 'createdAt', 'updatedAt'];
-      return d.keys().hasOnly(keys) && d.keys().hasAll(keys)
+      let required = ['title', 'topicId', 'topicName', 'recipe', 'seed', 'count', 'deals',
+                      'notes', 'archived', 'createdAt', 'updatedAt'];
+      return d.keys().hasOnly(required.concat(['dd', 'par'])) && d.keys().hasAll(required)
+        && (('dd' in d) == ('par' in d))
+        && (!('dd' in d) || validDd(d))
         && isString(d.title, 1, 200)
         && isString(d.topicId, 1, 100)
         && isString(d.topicName, 1, 200)
@@ -34,10 +42,19 @@ service cloud.firestore {
         && d.updatedAt == request.time;
     }
 
+    // Çift kukla sonuçları yalnızca bir kez, henüz yokken eklenebilir.
+    function validDdFill(d, before) {
+      return d.diff(before).affectedKeys().hasOnly(['dd', 'par', 'updatedAt'])
+        && !('dd' in before)
+        && validDd(d)
+        && d.updatedAt == request.time;
+    }
+
     match /sets/{setId} {
       allow get, list: if true;
       allow create: if validNewSet(request.resource.data);
-      allow update: if validSetUpdate(request.resource.data, resource.data);
+      allow update: if validSetUpdate(request.resource.data, resource.data)
+        || validDdFill(request.resource.data, resource.data);
       allow delete: if false;
 
       match /boardNotes/{board} {

@@ -1,7 +1,8 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import type { DealView } from '../data/savedSet'
-import { SEATS, controls, hcp, losingTrickCount, shapePattern } from '../engine'
+import { SEATS, controls, hcp, losingTrickCount, shapePattern, type DdResult } from '../engine'
 import { tr } from '../i18n/tr'
+import { DdTable } from './DdTable'
 import { DealCard } from './DealCard'
 import { dealCaption } from './format'
 
@@ -13,6 +14,8 @@ interface DealDialogProps {
   onNavigate: (index: number) => void
   /** Tablonun altına eklenecek içerik (örn. board notu). */
   renderExtra?: (deal: DealView) => ReactNode
+  /** Çift kukla sonuçları (board sırasıyla); "sadece konu eli" açıkken gösterilmez. */
+  dd?: (DdResult | undefined)[]
 }
 
 /** Seçili board'un büyük görünümü; ← → ile boardlar arasında gezilir. */
@@ -23,6 +26,7 @@ export function DealDialog({
   onClose,
   onNavigate,
   renderExtra,
+  dd,
 }: DealDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const deal = index === null ? null : deals[index]
@@ -96,6 +100,16 @@ export function DealDialog({
                 ))}
               </tbody>
             </table>
+          )}
+
+          {dd && !focusOnly && (
+            <section className="flex flex-col gap-1.5">
+              <h3 className="text-sm font-semibold text-slate-900">{tr.dd.title}</h3>
+              <p className="text-xs text-slate-500">{tr.dd.help}</p>
+              <div className="max-w-sm">
+                <DdTable result={dd[index]} size="lg" />
+              </div>
+            </section>
           )}
 
           {renderExtra?.(deal)}

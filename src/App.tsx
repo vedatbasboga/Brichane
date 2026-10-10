@@ -1,11 +1,12 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, NavLink, Route, Routes } from 'react-router'
+import { BrowserRouter, Link, NavLink, Route, Routes } from 'react-router'
 import { tr } from './i18n/tr'
 import { GeneratePage } from './pages/GeneratePage'
 
 // Setler Firebase'i kullanır; ana sayfa hafif kalsın diye ayrı yüklenir.
 const SetsPage = lazy(() => import('./pages/SetsPage'))
 const SetDetailPage = lazy(() => import('./pages/SetDetailPage'))
+const AboutPage = lazy(() => import('./pages/AboutPage'))
 
 const navClass = ({ isActive }: { isActive: boolean }) =>
   `rounded-md px-3 py-1.5 text-sm font-medium ${
@@ -35,10 +36,16 @@ export default function App() {
               <Route path="/" element={<GeneratePage />} />
               <Route path="/sets" element={<SetsPage />} />
               <Route path="/sets/:id" element={<SetDetailPage />} />
+              <Route path="/about" element={<AboutPage />} />
               <Route path="*" element={<GeneratePage />} />
             </Routes>
           </Suspense>
         </main>
+        <footer className="mx-auto max-w-7xl px-4 pb-6 text-sm text-slate-500">
+          <Link to="/about" className="hover:text-slate-700 hover:underline">
+            {tr.about.link}
+          </Link>
+        </footer>
       </div>
     </BrowserRouter>
   )

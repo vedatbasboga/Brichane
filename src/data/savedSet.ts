@@ -3,6 +3,10 @@
 import {
   dealToPbn,
   parsePbnDeal,
+  tricksFromHex,
+  tricksToHex,
+  type DdPar,
+  type DdResult,
   type GenerateResult,
   type GeneratedDeal,
   type Recipe,
@@ -33,6 +37,9 @@ export interface NewSetInput {
   count: number
   deals: SavedDeal[]
   notes: string
+  /** Çift kukla löve tabloları (board sırasıyla, PBN DoubleDummyTricks biçimi); hepsi varsa. */
+  dd?: string[]
+  par?: DdPar[]
 }
 
 export interface SavedSet extends NewSetInput {
@@ -66,12 +73,37 @@ export function fromSavedDeal(deal: SavedDeal): DealView {
   }
 }
 
+/** Bütün board'ların sonucu varsa kayıt biçimine çevirir, yoksa undefined. */
+export function ddToSaved(
+  results: readonly (DdResult | undefined)[] | undefined,
+  count: number,
+): Pick<NewSetInput, 'dd' | 'par'> | undefined {
+  if (!results || results.length !== count || results.some((r) => !r)) return undefined
+  const complete = results as DdResult[]
+  return {
+    dd: complete.map((r) => tricksToHex(r.tricks)),
+    par: complete.map((r) => ({ score: r.par.score, contracts: [...r.par.contracts] })),
+  }
+}
+
+/** Kayıtlı setteki çift kukla sonuçları (yoksa undefined). */
+export function ddFromSaved(
+  set: Pick<NewSetInput, 'dd' | 'par'>,
+): (DdResult | undefined)[] | undefined {
+  if (!set.dd || !set.par) return undefined
+  return set.dd.map((hex, i) =>
+    set.par?.[i] ? { tricks: tricksFromHex(hex), par: set.par[i] } : undefined,
+  )
+}
+
 export function buildNewSet(params: {
   title: string
   notes: string
   topicId: string
   recipe: Recipe
   result: GenerateResult
+  /** Tamamlanmış çift kukla sonuçları (eksikse kaydedilmez, set sayfası sonra hesaplar). */
+  dd?: readonly (DdResult | undefined)[]
 }): NewSetInput {
   const { title, notes, topicId, recipe, result } = params
   return {
@@ -83,6 +115,7 @@ export function buildNewSet(params: {
     count: result.deals.length,
     deals: result.deals.map(toSavedDeal),
     notes: notes.trim().slice(0, MAX_NOTES_LENGTH),
+    ...ddToSaved(params.dd, result.deals.length),
   }
 }
 

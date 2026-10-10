@@ -18,6 +18,11 @@ Bu plan Claude Code ile **faz faz** uygulanmak üzere yazıldı. Her fazı ayrı
   - [ ] App Check (reCAPTCHA v3) — konsolda anahtar oluşturulması bekleniyor
   - [ ] Günlük yedek — Firestore yedekleri Blaze (faturalı) plan istiyor; karar bekleniyor
 - [ ] Faz 6 — Çift kukla analizi (DDS)
+  - [x] `bridge-dds` (DDS WebAssembly, Apache 2.0); 3 paralel işçi, 16 board ~2 sn (masaüstü)
+  - [x] Löve tablosu + par: kartta küçük, büyük görünümde tam; PDF'te; "sadece konu eli"nde gizli
+  - [x] Sete bir kez yazılır (kurallar: yalnızca henüz yoksa); eski setlerde açılınca hesaplanır
+  - [x] Bağımsız DDS derlemesiyle 400/400 hücre doğrulandı; "Hakkında" sayfasında atıf
+  - [ ] Bridge Composer / BSOL ile birkaç board karşılaştırması (hoca/kullanıcı)
 - [ ] Faz 7 — Dışa aktarma ve baskı
 - [ ] Faz 8 — Test ve iyileştirme (hoca ile)
 - [ ] Faz 9 — Sonraki etap (şimdilik yapılmayacak)

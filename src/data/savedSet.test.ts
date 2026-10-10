@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { generateDeals } from '../engine'
+import { generateDeals, tricksFromDds, type DdResult } from '../engine'
 import { ONE_NT_RECIPE } from '../engine/testFixtures'
-import { buildNewSet, defaultSetTitle, fromSavedDeal, toSavedDeal } from './savedSet'
+import {
+  buildNewSet,
+  ddFromSaved,
+  ddToSaved,
+  defaultSetTitle,
+  fromSavedDeal,
+  toSavedDeal,
+} from './savedSet'
 
 const result = generateDeals({
   recipe: { ...ONE_NT_RECIPE, placement: undefined },
@@ -62,5 +69,41 @@ describe('buildNewSet', () => {
 describe('defaultSetTitle', () => {
   it('combines topic name and Turkish date', () => {
     expect(defaultSetTitle('Stayman', new Date(2026, 9, 10))).toBe('Stayman · 10.10.2026')
+  })
+})
+
+describe('double dummy persistence', () => {
+  const tricks = tricksFromDds([
+    [10, 3, 10, 3],
+    [10, 3, 10, 3],
+    [8, 4, 8, 4],
+    [8, 5, 8, 5],
+    [8, 3, 8, 3],
+  ])
+  const dd: DdResult = { tricks, par: { score: 420, contracts: ['4S-NS', '4H-NS'] } }
+
+  it('saves only when every board has a result', () => {
+    expect(ddToSaved([dd, undefined], 2)).toBeUndefined()
+    expect(ddToSaved([dd], 2)).toBeUndefined()
+    expect(ddToSaved(undefined, 2)).toBeUndefined()
+    expect(ddToSaved([dd, dd], 2)).toEqual({
+      dd: ['8aa8833345' + '8aa8833345', '8aa8833345' + '8aa8833345'],
+      par: [dd.par, dd.par],
+    })
+  })
+
+  it('round-trips through the saved form', () => {
+    const saved = ddToSaved([dd, dd], 2)!
+    expect(ddFromSaved(saved)).toEqual([dd, dd])
+    expect(ddFromSaved({})).toBeUndefined()
+  })
+
+  it('is included in a new set only when complete', () => {
+    const base = { title: 't', notes: '', topicId: 'x', recipe: ONE_NT_RECIPE }
+    const partial = { ...result, deals: result.deals.slice(0, 2) }
+    expect(buildNewSet({ ...base, result: partial, dd: [dd] }).dd).toBeUndefined()
+    const full = buildNewSet({ ...base, result: partial, dd: [dd, dd] })
+    expect(full.dd).toHaveLength(2)
+    expect(full.par).toHaveLength(2)
   })
 })
