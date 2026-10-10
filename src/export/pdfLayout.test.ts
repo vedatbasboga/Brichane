@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { BOARDS_PER_PAGE, PAGE, boardCells, pageCount, pdfFileName } from './pdfLayout'
+import { BOARDS_PER_PAGE, PAGE, boardCells, pageCount, exportFileName } from './pdfLayout'
 
 describe('boardCells', () => {
   const cells = boardCells()
@@ -37,15 +37,23 @@ describe('pageCount', () => {
   })
 })
 
-describe('pdfFileName', () => {
+describe('exportFileName', () => {
   it('transliterates Turkish and keeps it ASCII', () => {
-    expect(pdfFileName('1 Sanzatu açılışı', 'k7m2xq9p')).toBe(
+    expect(exportFileName('1 Sanzatu açılışı', 'k7m2xq9p')).toBe(
       'brichane-1-sanzatu-acilisi-k7m2xq9p.pdf',
     )
-    expect(pdfFileName('Şlem · İleri Düzey', 'Ders 5')).toBe('brichane-slem-ileri-duzey-ders-5.pdf')
+    expect(exportFileName('Şlem · İleri Düzey', 'Ders 5')).toBe(
+      'brichane-slem-ileri-duzey-ders-5.pdf',
+    )
   })
 
   it('handles empty parts', () => {
-    expect(pdfFileName('', '')).toBe('brichane.pdf')
+    expect(exportFileName('', '')).toBe('brichane.pdf')
+  })
+})
+
+describe('exportFileName extension', () => {
+  it('supports other extensions', () => {
+    expect(exportFileName('Stayman', '2026-10-10', 'pbn')).toBe('brichane-stayman-2026-10-10.pbn')
   })
 })

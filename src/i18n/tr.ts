@@ -90,6 +90,11 @@ export const tr = {
     error: 'Çift kukla hesaplanamadı:',
   },
 
+  pbn: {
+    download: 'PBN indir',
+    help: 'Bridge Composer, BBO ve kart dağıtma makineleri için PBN dosyası',
+  },
+
   pdf: {
     download: 'PDF indir',
     preparing: 'Hazırlanıyor…',

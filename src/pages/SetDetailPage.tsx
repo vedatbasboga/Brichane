@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { DealDialog } from '../components/DealDialog'
 import { DealGrid } from '../components/DealGrid'
+import { PbnButton } from '../components/PbnButton'
 import { PdfButton } from '../components/PdfButton'
 import { ShareButton } from '../components/ShareButton'
 import {
@@ -244,6 +245,17 @@ function SetDetail({ initialSet, initialNotes }: SetDetailProps) {
               focusOnly,
               notes: set.notes,
               date: set.createdAt,
+            })}
+          />
+          <PbnButton
+            getOptions={() => ({
+              event: set.title,
+              date: set.createdAt ?? new Date(),
+              deals,
+              dd: dd.results,
+              notes: set.notes,
+              boardNotes,
+              sourceUrl: setUrl,
             })}
           />
         </div>

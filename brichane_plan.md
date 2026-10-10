@@ -24,6 +24,11 @@ Bu plan Claude Code ile **faz faz** uygulanmak üzere yazıldı. Her fazı ayrı
   - [x] Bağımsız DDS derlemesiyle 400/400 hücre doğrulandı; "Hakkında" sayfasında atıf
   - [ ] Bridge Composer / BSOL ile birkaç board karşılaştırması (hoca/kullanıcı)
 - [ ] Faz 7 — Dışa aktarma ve baskı
+  - [x] PDF indir (A4, 6 board/sayfa, öğrenci/hoca kopyası, çift kukla, paylaşım bağlantısı)
+  - [x] PBN indir: PBN 2.1 etiketleri, dağıtım dağıtıcıdan başlar; DoubleDummyTricks, OptimumResultTable, OptimumScore, ParContract; set/board notları yorum olarak; UTF-8 (BOM) + CRLF
+  - [ ] PBN'i Bridge Composer / BBO / dağıtma makinesinde açarak doğrulama (kullanıcı)
+  - [ ] Hoca kopyası: board notları PDF'te, sayfa başına 4 board seçeneği
+  - [ ] (Opsiyonel) LIN
 - [ ] Faz 8 — Test ve iyileştirme (hoca ile)
 - [ ] Faz 9 — Sonraki etap (şimdilik yapılmayacak)
 

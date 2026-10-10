@@ -47,6 +47,11 @@ Ağır işler (el üretimi, DDS) Web Worker'da. Veri Firestore'da, yayın Fireba
 - `topicDraft.ts`: form modeli (tam aralık = koşul yok) ↔ `Recipe` dönüşümü ve doğrulama.
 - Bir sete kaydederken tarifin kopyası da saklanmalı (özel dağılımın kalıcı bir kaydı yok).
 
+## Dışa aktarma (`src/export/`)
+
+- `dealsPdf.ts` (jsPDF, yalnızca butona basınca yüklenir), `pdfLayout.ts` (yerleşim, dosya adı), `pbnFile.ts` (saf PBN üretici), `download.ts` (UTF-8 BOM ile indirme).
+- PBN: dağıtım dağıtıcıdan başlar; çift kukla `DoubleDummyTricks` + `OptimumResultTable` + `OptimumScore` + `ParContract`; notlar `{ }` yorum (`{}` karakterleri parantezle değiştirilir).
+
 ## Firebase (`src/firebase/`)
 
 - Proje kimliği `brichane-0` (`.firebaserc`), Firestore `europe-west3`. Ayarlar `.env` (`VITE_FIREBASE_*`, örnek: `.env.example`).

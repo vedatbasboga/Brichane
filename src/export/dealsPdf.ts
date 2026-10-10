@@ -26,7 +26,14 @@ import {
   type Vulnerability,
 } from '../engine'
 import { tr } from '../i18n/tr'
-import { BOARDS_PER_PAGE, PAGE, boardCells, pageCount, pdfFileName, type Rect } from './pdfLayout'
+import {
+  BOARDS_PER_PAGE,
+  PAGE,
+  boardCells,
+  pageCount,
+  exportFileName,
+  type Rect,
+} from './pdfLayout'
 
 export interface DealsPdfOptions {
   title: string
@@ -102,7 +109,7 @@ export async function downloadDealsPdf(options: DealsPdfOptions): Promise<void> 
     })
     drawFooter(doc, page + 1, pages, options.shareUrl)
   }
-  doc.save(pdfFileName(options.title, isoDay(options.date ?? new Date())))
+  doc.save(exportFileName(options.title, isoDay(options.date ?? new Date())))
 }
 
 async function loadFont(url: string): Promise<string> {

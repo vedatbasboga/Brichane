@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router'
 import { CustomTopicDialog } from '../components/CustomTopicDialog'
 import { DealDialog } from '../components/DealDialog'
 import { DealGrid } from '../components/DealGrid'
+import { PbnButton } from '../components/PbnButton'
 import { PdfButton } from '../components/PdfButton'
 import { SaveSetDialog } from '../components/SaveSetDialog'
 import { ShareButton } from '../components/ShareButton'
@@ -315,6 +316,15 @@ export function GeneratePage() {
                       dd: dd.results,
                       focusOnly,
                       shareUrl: shareUrl ?? undefined,
+                    })}
+                  />
+                  <PbnButton
+                    getOptions={() => ({
+                      event: generatedWith.recipe.name,
+                      date: new Date(),
+                      deals: result.deals,
+                      dd: dd.results,
+                      sourceUrl: shareUrl ?? undefined,
                     })}
                   />
                   {savedSetId ? (
