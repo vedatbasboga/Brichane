@@ -39,7 +39,7 @@ export interface SeatConstraint {
   ltc?: Range
   /** Konu rengindeki uzunluk (tarifte `topicSuit` seçiliyse). */
   topicSuit?: Range
-  /** El bunlardan hiçbirine uymamalı (örn. minör açılış: "1SA eli değil"). */
+  /** El bunlardan hiçbirine uymamalı (örn. minör açılış: "1NT eli değil"). */
   exclude?: readonly SeatConstraint[]
 }
 

@@ -126,7 +126,7 @@ Her konu bir JSON tarif. Örnek:
 - Tarif dağıtıcı belirtiyorsa ona uy.
 
 **Bitti sayılır:**
-- 1SA tarifiyle 100 el 1 saniyenin altında üretiliyor.
+- 1NT tarifiyle 100 el 1 saniyenin altında üretiliyor.
 - Her üretilen el tarife uyuyor (testle doğrulanmış).
 - Aynı tohum aynı seti veriyor.
 - HP, dağılım ve dengeli tespiti için birim testleri geçiyor.
@@ -158,8 +158,8 @@ Aralıklar **hocanın sistemine göre** düzeltilecek; aşağıdakiler başlang�
 | Açılışlar | 2 Sanzatu açılışı | S: 20–21 HP, dengeli |
 | Açılışlar | 1 Majör açılış | S: 12–21 HP, 5+ ♥ veya ♠ |
 | Açılışlar | Zayıf iki açılış | S: 6–10 HP, 6'lı renk |
-| 1SA sonrası | Stayman | S: 1SA eli; N: 8+ HP, 4'lü majör |
-| 1SA sonrası | Transfer | S: 1SA eli; N: 5+ majör |
+| 1NT sonrası | Stayman | S: 1NT eli; N: 8+ HP, 4'lü majör |
+| 1NT sonrası | Transfer | S: 1NT eli; N: 5+ majör |
 | Rekabet | Takeout kontr | E: açılış; S: 12+ HP, açılan renkte kısa |
 | Rekabet | Renk müdahalesi | E: açılış; S: 8–16 HP, 5+ renk |
 | Şlem | Blackwood / şlem | NS toplam 33+ HP, fit |
@@ -223,7 +223,7 @@ Auth olmadan Firestore herkese açık kalır; site adresini bilen herkes veriyi 
    - Önce hazır npm paketini değerlendir (`@bridge-tools/dd`); güncel ve çalışıyorsa onu kullan.
    - Değilse resmi DDS kaynağını (`dds-bridge/dds`) Emscripten ile derle.
 2. Ayrı bir Web Worker'da çalıştır (`ddsWorker.ts`).
-3. Her board için 4 deklare × 5 koz (♣ ♦ ♥ ♠ SA) löve tablosu + par skor/kontrat.
+3. Her board için 4 deklare × 5 koz (♣ ♦ ♥ ♠ NT) löve tablosu + par skor/kontrat.
 4. Sonuçları sete kaydet (bir kez hesapla, Firestore'dan oku).
 5. Arayüz: board kartının altında küçük tablo, büyük görünümde tam tablo.
 6. Lisans: DDS Apache 2.0 — "Hakkında" sayfasına atıf ekle.

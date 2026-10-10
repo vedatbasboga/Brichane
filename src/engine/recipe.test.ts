@@ -48,7 +48,7 @@ describe('matchesSeat', () => {
   })
 
   it('rejects hands that match an excluded constraint', () => {
-    // S: 16 HP 4-4-3-2 — 1SA eli
+    // S: 16 HP 4-4-3-2 — 1NT eli
     const notOneNt: SeatConstraint = {
       hcp: [12, 21],
       exclude: [{ hcp: [15, 17], shape: 'balanced' }],

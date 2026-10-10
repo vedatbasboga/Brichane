@@ -41,7 +41,7 @@ export const DEFAULT_TOPICS: Recipe[] = [
     id: '1-minor-opening',
     name: '1 Minör açılış',
     category: 'Açılışlar',
-    description: "Açan: 12–21 HP, 5'li majör yok; 1SA (15–17) veya 2SA (20–21) dengeli eli değil.",
+    description: "Açan: 12–21 HP, 5'li majör yok; 1NT (15–17) veya 2NT (20–21) dengeli eli değil.",
     dealer: 'S',
     seats: {
       S: {
@@ -65,8 +65,8 @@ export const DEFAULT_TOPICS: Recipe[] = [
   {
     id: 'stayman',
     name: 'Stayman',
-    category: '1SA sonrası',
-    description: "Açan: 1SA eli; ortağı: 8+ HP, 4'lü majör.",
+    category: '1NT sonrası',
+    description: "Açan: 1NT eli; ortağı: 8+ HP, 4'lü majör.",
     dealer: 'S',
     seats: {
       S: ONE_NT_OPENER,
@@ -80,8 +80,8 @@ export const DEFAULT_TOPICS: Recipe[] = [
   {
     id: 'transfer',
     name: 'Transfer',
-    category: '1SA sonrası',
-    description: 'Açan: 1SA eli; ortağı: 5+ majör.',
+    category: '1NT sonrası',
+    description: 'Açan: 1NT eli; ortağı: 5+ majör.',
     dealer: 'S',
     seats: { S: ONE_NT_OPENER, N: { anySuit: { suits: ['S', 'H'], length: [5, 13] } } },
   },

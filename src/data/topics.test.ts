@@ -44,7 +44,7 @@ describe('groupByCategory', () => {
     const groups = groupByCategory(DEFAULT_TOPICS, (topic) => topic.category)
     expect(groups.map(([category]) => category)).toEqual([
       'Açılışlar',
-      '1SA sonrası',
+      '1NT sonrası',
       'Rekabet',
       'Şlem',
       'Oyun',

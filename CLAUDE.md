@@ -29,7 +29,7 @@ Ağır işler (el üretimi, DDS) Web Worker'da. Veri Firestore'da, yayın Fireba
 
 - Kart = `suit * 13 + rank`; renk sırası ♠ ♥ ♦ ♣ (0–3), rank 0 = 2 … 12 = A. `Deal = Record<Seat, Hand>`.
 - Tüm rastgelelik `Rng` üzerinden; üretici her zaman tohumlu çalışır (tohum boşsa rastgele tohum üretip sonuçta döner), böylece her set tekrar üretilebilir.
-- Tarif (`Recipe`) modeli `recipe.ts` içinde; koltuk ve ortaklık kısıtları, `anySuit` ("♥ veya ♠ 5+"), `exclude` ("1SA eli değil"), `fit`.
+- Tarif (`Recipe`) modeli `recipe.ts` içinde; koltuk ve ortaklık kısıtları, `anySuit` ("♥ veya ♠ 5+"), `exclude` ("1NT eli değil"), `fit`.
 - Tarifler Güney dağıtıcıymış gibi yazılır. `placement: 'balanced'` (varsayılan) dağıtımı board'un standart dağıtıcısına çevirir; konu eli dört koltuğa eşit dağılır. Konu açıklamaları bu yüzden koltuk adı değil rol kullanır ("Açan:", "ortağı:").
 - `generateDeals` reddetme örneklemesi yapar; `dealWorker.ts` bunu Web Worker'da çalıştırır.
 - `topicSuit` (konu rengi): tarifte izin verilen renklerden biri seçilir, koltukların `topicSuit` aralığı aynı renge uygulanır (takeout kontr: rakip X'te 5+, kontr eden X'te 0–1).

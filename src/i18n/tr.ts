@@ -96,7 +96,7 @@ export const tr = {
     controls: 'Kontrol (A=2, K=1)',
     ltc: 'Kaybeden löve (LTC)',
     exclude: 'Hariç tut',
-    excludeHelp: 'El bunlardan birine uyuyorsa kullanılmaz (örn. 1SA eli).',
+    excludeHelp: 'El bunlardan birine uyuyorsa kullanılmaz (örn. 1NT eli).',
     addExclude: 'Hariç tutma ekle',
     remove: 'Kaldır',
     pairSection: (pair: string) => `${pair} ortaklığı`,

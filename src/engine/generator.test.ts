@@ -77,7 +77,7 @@ describe('generateDeals', () => {
         expect(deal.vul).toBe(boardVulnerability(deal.board))
         expect(deal.rotation).toBe(seatDistance('S', deal.dealer))
         expect(deal.focusSeats).toEqual([deal.dealer])
-        // Geri çevrilince tarife uyar ve 1SA eli dağıtıcıdadır.
+        // Geri çevrilince tarife uyar ve 1NT eli dağıtıcıdadır.
         expect(matchesRecipe(rotateDeal(deal.hands, -deal.rotation), ONE_NT_RECIPE)).toBe(true)
         expect(matchesSeat(deal.hands[deal.dealer], ONE_NT_RECIPE.seats.S!)).toBe(true)
       }
