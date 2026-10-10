@@ -274,6 +274,13 @@ Auth olmadan Firestore herkese açık kalır; site adresini bilen herkes veriyi 
 - Firebase Auth (e-posta + Google)
 - `users/{uid}`: ad, rol (`teacher` / `student`), `subscriptionEndsAt`
 - Güvenlik kuralları kullanıcı bazlı; App Check kalır
+- **Kullanıcı başına kayıtlar, en fazla 10 set (kayan pencere):**
+  - Her set sahibine bağlı (`ownerId`); kullanıcı yalnızca kendi setlerini görür ve düzenler
+  - 10 set doluyken yeni set kaydedilince **en eski set (ve board notları) otomatik silinir**; her zaman son 10 set kalır
+  - Silme, toplu bir işlemle (transaction/batch) yeni kayıtla birlikte yapılır; kurallar yalnızca sahibin kendi setini silmesine izin verir. Daha sağlam seçenek: Blaze'e geçilince bir Cloud Function her yeni setten sonra fazlasını temizler
+  - Kaydet ekranında 10. setten sonra uyarı: "Yeni set kaydedilince en eski set (ad) silinecek"
+  - Bu gelince "silme kapalı / arşivle" kuralı kullanıcı setleri için kalkar; arşivleme gerekip gerekmediği yeniden değerlendirilir
+  - Auth öncesi kaydedilmiş (sahipsiz) setler: geçişte hocanın hesabına aktarılır
 
 ### 9.2 Abonelik (iyzico)
 - iyzico abonelik ürünü + aylık / yıllık plan
