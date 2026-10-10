@@ -31,7 +31,8 @@ Ağır işler (el üretimi, DDS) Web Worker'da. Veri Firestore'da, yayın Fireba
 ## Motor (`src/engine/`) özeti
 
 - Kart = `suit * 13 + rank`; renk sırası ♠ ♥ ♦ ♣ (0–3), rank 0 = 2 … 12 = A. `Deal = Record<Seat, Hand>`.
-- Tüm rastgelelik `Rng` üzerinden; üretici her zaman tohumlu çalışır (arayüzde "Set kodu" deniyor) (tohum boşsa rastgele tohum üretip sonuçta döner), böylece her set tekrar üretilebilir.
+- Tüm rastgelelik `Rng` üzerinden; üretici her zaman tohumlu çalışır (tohum verilmezse rastgele tohum üretip sonuçta döner), böylece her set tekrar üretilebilir. Kullanıcı tohumu görmez; paylaşım bağlantısının içinde taşınır (`src/data/shareLink.ts`).
+- **Üretim çıktısını değiştiren her değişiklik paylaşılmış bağlantıları bozar.** `src/data/golden.test.ts` bunu yakalar; bilerek yapılıyorsa `SHARE_VERSION` artırılır ve beklenen değerler güncellenir.
 - Tarif (`Recipe`) modeli `recipe.ts` içinde; koltuk ve ortaklık kısıtları, `anySuit` ("♥ veya ♠ 5+"), `exclude` ("1NT eli değil"), `fit`.
 - Tarifler Güney dağıtıcıymış gibi yazılır. `placement: 'balanced'` (varsayılan) dağıtımı board'un standart dağıtıcısına çevirir; konu eli dört koltuğa eşit dağılır. Konu açıklamaları bu yüzden koltuk adı değil rol kullanır ("Açan:", "ortağı:").
 - `generateDeals` reddetme örneklemesi yapar; `dealWorker.ts` bunu Web Worker'da çalıştırır.
