@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { boardDealer, boardVulnerability } from './board'
-import { SEATS, sortHand } from './cards'
+import { SEATS, seatDistance, sortHand } from './cards'
 import { rotateDeal } from './deal'
-import { generateDeals, type GenerateProgress } from './generator'
-import { matchesRecipe, type Recipe } from './recipe'
+import { generateDeals, placeDeal, type GenerateProgress } from './generator'
+import { matchesRecipe, matchesSeat, type Recipe } from './recipe'
 import { ONE_NT_RECIPE } from './testFixtures'
 
 describe('generateDeals', () => {
@@ -54,7 +54,7 @@ describe('generateDeals', () => {
       expect(deal.dealer).toBe('S')
       expect(deal.vul).toBe(boardVulnerability(i + 1))
       expect(deal.focusSeats).toEqual(['S'])
-      expect(deal.rotated).toBe(false)
+      expect(deal.rotation).toBe(0)
     })
   })
 
@@ -67,18 +67,56 @@ describe('generateDeals', () => {
     })
   })
 
-  it('rotates some deals 180° when the recipe asks for it', () => {
-    const recipe: Recipe = { ...ONE_NT_RECIPE, rotate: true }
-    const { deals } = generateDeals({ recipe, count: 40, seed: 'rotate' })
-    const rotated = deals.filter((deal) => deal.rotated)
-    expect(rotated.length).toBeGreaterThan(5)
-    expect(rotated.length).toBeLessThan(35)
-    for (const deal of deals) {
-      const original = deal.rotated ? rotateDeal(deal.hands, 2) : deal.hands
-      expect(matchesRecipe(original, ONE_NT_RECIPE)).toBe(true)
-      expect(deal.dealer).toBe(deal.rotated ? 'N' : 'S')
-      expect(deal.focusSeats).toEqual(deal.rotated ? ['N'] : ['S'])
-    }
+  describe('balanced placement', () => {
+    const balanced: Recipe = { ...ONE_NT_RECIPE, placement: undefined }
+
+    it('is the default and moves the topic hand to the standard board dealer', () => {
+      const { deals } = generateDeals({ recipe: balanced, count: 16, seed: 'balanced' })
+      for (const deal of deals) {
+        expect(deal.dealer).toBe(boardDealer(deal.board))
+        expect(deal.vul).toBe(boardVulnerability(deal.board))
+        expect(deal.rotation).toBe(seatDistance('S', deal.dealer))
+        expect(deal.focusSeats).toEqual([deal.dealer])
+        // Geri çevrilince tarife uyar ve 1SA eli dağıtıcıdadır.
+        expect(matchesRecipe(rotateDeal(deal.hands, -deal.rotation), ONE_NT_RECIPE)).toBe(true)
+        expect(matchesSeat(deal.hands[deal.dealer], ONE_NT_RECIPE.seats.S!)).toBe(true)
+      }
+    })
+
+    it('gives each seat the topic hand equally often', () => {
+      const { deals } = generateDeals({ recipe: balanced, count: 16, seed: 'equal' })
+      const counts = { N: 0, E: 0, S: 0, W: 0 }
+      for (const deal of deals) counts[deal.focusSeats[0]]++
+      expect(counts).toEqual({ N: 4, E: 4, S: 4, W: 4 })
+    })
+
+    it('alternates partnership topics between NS and EW', () => {
+      const pairRecipe: Recipe = {
+        ...balanced,
+        seats: { N: { shape: 'balanced' }, S: { shape: 'balanced' } },
+      }
+      const { deals } = generateDeals({ recipe: pairRecipe, count: 4, seed: 'pair' })
+      expect(deals.map((deal) => deal.focusSeats)).toEqual([
+        ['N', 'S'],
+        ['E', 'W'],
+        ['N', 'S'],
+        ['E', 'W'],
+      ])
+    })
+
+    it('respects firstBoard', () => {
+      const { deals } = generateDeals({ recipe: balanced, count: 2, seed: 'fb', firstBoard: 3 })
+      expect(deals.map((deal) => deal.dealer)).toEqual(['S', 'W'])
+      expect(deals.map((deal) => deal.rotation)).toEqual([0, 1])
+    })
+  })
+
+  it('keeps hands where the recipe puts them with fixed placement', () => {
+    expect(placeDeal(ONE_NT_RECIPE, 1)).toEqual({ dealer: 'S', rotation: 0 })
+    expect(placeDeal({ ...ONE_NT_RECIPE, dealer: undefined }, 2)).toEqual({
+      dealer: 'E',
+      rotation: 0,
+    })
   })
 
   it('stops at maxAttempts and reports the observed probability', () => {

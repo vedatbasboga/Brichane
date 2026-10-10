@@ -107,12 +107,14 @@ Her konu bir JSON tarif. Örnek:
     "S": { "hcp": [15, 17], "shape": "balanced", "suits": { "S": [0, 4], "H": [0, 4] } }
   },
   "pair": {},
-  "rotate": false
+  "placement": "balanced"
 }
 ```
-- El başına: `hcp`, `shape` (balanced / semi-balanced / any), renk başına uzunluk aralığı, `controls`, `ltc`
+- El başına: `hcp`, `shape` (balanced / semi-balanced / any), renk başına uzunluk aralığı, `controls`, `ltc`, `anySuit` (şu renklerden en az biri), `exclude` (şu ellerden biri olmasın)
 - Ortaklık başına: toplam HP aralığı, belirli renkte ortak fit
-- `rotate`: üretilen elleri rastgele 180° çevir (konu eli bazen karşı tarafa düşsün)
+- ~~`rotate`: üretilen elleri rastgele 180° çevir~~ → yerine `placement` (hoca geri bildirimi: el hep aynı tarafta olmasın):
+  - `balanced` (varsayılan): tarifteki dağıtıcı, board'un standart dağıtıcısına çevrilir → konu eli K/D/G/B'ye eşit dağılır (16 board'da her koltuğa 4), dağıtıcı ve zon standart board'larla uyumlu
+  - `fixed`: eller tarifte yazılan koltukta kalır
 
 ### 2.5 Üretici
 - Reddetme örneklemesi: dağıt → kontrol et → uymazsa at.

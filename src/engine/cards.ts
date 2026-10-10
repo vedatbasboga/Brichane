@@ -86,6 +86,11 @@ export function pairOf(seat: Seat): Pair {
   return seat === 'N' || seat === 'S' ? 'NS' : 'EW'
 }
 
+/** `from` koltuğundan `to` koltuğuna saat yönünde kaç adım (0–3). */
+export function seatDistance(from: Seat, to: Seat): number {
+  return (SEATS.indexOf(to) - SEATS.indexOf(from) + 4) % 4
+}
+
 /** Saat yönünde `steps` koltuk ilerletir. */
 export function rotateSeat(seat: Seat, steps: number): Seat {
   return SEATS[(((SEATS.indexOf(seat) + steps) % 4) + 4) % 4]

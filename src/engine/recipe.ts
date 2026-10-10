@@ -37,6 +37,8 @@ export interface SeatConstraint {
   anySuit?: AnySuitConstraint
   controls?: Range
   ltc?: Range
+  /** El bunlardan hiçbirine uymamalı (örn. minör açılış: "1SA eli değil"). */
+  exclude?: readonly SeatConstraint[]
 }
 
 /** Ortaklığın verilen renklerden (varsayılan: hepsi) en az birinde ortak uzunluğu aralıkta olmalı. */
@@ -50,17 +52,24 @@ export interface PairConstraint {
   fit?: FitConstraint
 }
 
+/**
+ * Konu elinin koltuğa yerleşimi:
+ * - `balanced` (varsayılan): dağıtım, tarifteki dağıtıcı board'un standart dağıtıcısına
+ *   gelecek şekilde çevrilir; konu eli dört koltuğa eşit dağılır, dağıtıcı/zon standart kalır.
+ * - `fixed`: eller tarifte yazılan koltuklarda kalır (örn. hep Güney açar).
+ */
+export type Placement = 'balanced' | 'fixed'
+
 export interface Recipe {
   id: string
   name: string
   category: string
   description?: string
-  /** Belirtilirse board numarasından gelen dağıtıcının yerine geçer. */
+  /** Tarifin hangi koltuktan yazıldığı; `fixed` yerleşimde dağıtıcı budur. */
   dealer?: Seat
   seats: Partial<Record<Seat, SeatConstraint>>
   pair?: Partial<Record<Pair, PairConstraint>>
-  /** Üretilen elleri rastgele 180° çevir (konu eli bazen karşı tarafa düşsün). */
-  rotate?: boolean
+  placement?: Placement
 }
 
 export function inRange(value: number, [min, max]: Range): boolean {
@@ -91,6 +100,7 @@ export function matchesSeat(hand: readonly Card[], c: SeatConstraint): boolean {
   if (c.shape && !matchesShape(shapeClass(hand), c.shape)) return false
   if (c.controls && !inRange(controls(hand), c.controls)) return false
   if (c.ltc && !inRange(losingTrickCount(hand), c.ltc)) return false
+  if (c.exclude?.some((excluded) => matchesSeat(hand, excluded))) return false
   return true
 }
 

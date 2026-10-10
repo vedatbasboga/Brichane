@@ -1,7 +1,7 @@
 import { boardDealer, boardVulnerability, type Vulnerability } from './board'
-import { partnerOf, rotateSeat, sortDeal, type Deal, type Seat } from './cards'
+import { SEATS, rotateSeat, seatDistance, sortDeal, type Deal, type Seat } from './cards'
 import { dealUnsorted, rotateDeal } from './deal'
-import { randomInt, randomSeed, seededRng } from './random'
+import { randomSeed, seededRng } from './random'
 import { focusSeats, matchesRecipe, type Recipe } from './recipe'
 
 export const DEFAULT_MAX_ATTEMPTS = 1_000_000
@@ -23,9 +23,9 @@ export interface GeneratedDeal {
   dealer: Seat
   vul: Vulnerability
   hands: Deal
-  /** El 180° çevrildi mi (tarifte `rotate` açıksa). */
-  rotated: boolean
-  /** Konu elleri (çevirme sonrası koltuklar). */
+  /** Tariften saat yönünde kaç koltuk çevrildi (0–3); geri almak için `rotateDeal(hands, -rotation)`. */
+  rotation: number
+  /** Konu elleri (çevirme sonrası koltuklar), N E S W sırasıyla. */
   focusSeats: Seat[]
 }
 
@@ -43,6 +43,15 @@ export interface GenerateResult {
   attempts: number
   /** Bulunan / deneme — tarifin gözlenen olasılığı. */
   observedProbability: number
+}
+
+/** Board'un dağıtıcısı ve dağıtımın tariften kaç koltuk çevrileceği. */
+export function placeDeal(recipe: Recipe, board: number): { dealer: Seat; rotation: number } {
+  if (recipe.placement === 'fixed') {
+    return { dealer: recipe.dealer ?? boardDealer(board), rotation: 0 }
+  }
+  const dealer = boardDealer(board)
+  return { dealer, rotation: seatDistance(recipe.dealer ?? 'N', dealer) }
 }
 
 /** Reddetme örneklemesi: dağıt → kontrol et → uymazsa at. */
@@ -64,15 +73,15 @@ export function generateDeals(
     const hands = dealUnsorted(rng)
     if (matchesRecipe(hands, recipe)) {
       const board = firstBoard + deals.length
-      const rotated = recipe.rotate === true && randomInt(rng, 2) === 1
-      const dealer = recipe.dealer ?? boardDealer(board)
+      const { dealer, rotation } = placeDeal(recipe, board)
+      const rotatedFocus = new Set(baseFocus.map((seat) => rotateSeat(seat, rotation)))
       deals.push({
         board,
-        dealer: rotated && recipe.dealer ? partnerOf(dealer) : dealer,
+        dealer,
         vul: boardVulnerability(board),
-        hands: sortDeal(rotated ? rotateDeal(hands, 2) : hands),
-        rotated,
-        focusSeats: rotated ? baseFocus.map((seat) => rotateSeat(seat, 2)) : baseFocus,
+        hands: sortDeal(rotation ? rotateDeal(hands, rotation) : hands),
+        rotation,
+        focusSeats: SEATS.filter((seat) => rotatedFocus.has(seat)),
       })
       onProgress?.({ found: deals.length, count, attempts })
     } else if (attempts % PROGRESS_INTERVAL === 0) {

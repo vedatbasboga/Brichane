@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { parsePbnDeal, parsePbnHand as h } from './pbn'
-import { focusSeats, matchesPair, matchesRecipe, matchesSeat, type Recipe } from './recipe'
+import {
+  focusSeats,
+  matchesPair,
+  matchesRecipe,
+  matchesSeat,
+  type Recipe,
+  type SeatConstraint,
+} from './recipe'
 import { ONE_NT_RECIPE, SAMPLE_DEAL_PBN } from './testFixtures'
 
 // Örnek dağıtım: N 13 HP 4333, E 7, S 16 HP 4432, W 4. NS ♠ fiti 8, NS 29 HP.
@@ -38,6 +45,19 @@ describe('matchesSeat', () => {
     expect(matchesSeat(deal.S, { controls: [6, 6], ltc: [6, 6] })).toBe(true)
     expect(matchesSeat(deal.S, { controls: [7, 12] })).toBe(false)
     expect(matchesSeat(deal.S, { ltc: [0, 5] })).toBe(false)
+  })
+
+  it('rejects hands that match an excluded constraint', () => {
+    // S: 16 HP 4-4-3-2 — 1SA eli
+    const notOneNt: SeatConstraint = {
+      hcp: [12, 21],
+      exclude: [{ hcp: [15, 17], shape: 'balanced' }],
+    }
+    expect(matchesSeat(deal.S, notOneNt)).toBe(false)
+    expect(matchesSeat(deal.N, notOneNt)).toBe(true)
+    expect(matchesSeat(deal.S, { exclude: [{ hcp: [0, 10] }, { suits: { C: [0, 1] } }] })).toBe(
+      true,
+    )
   })
 
   it('requires every condition to hold', () => {

@@ -20,5 +20,5 @@ export const ONE_NT_RECIPE: Recipe = {
     S: { hcp: [15, 17], shape: 'balanced', suits: { S: [0, 4], H: [0, 4] } },
   },
   pair: {},
-  rotate: false,
+  placement: 'fixed',
 }

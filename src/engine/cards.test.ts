@@ -11,6 +11,7 @@ import {
   pairOf,
   partnerOf,
   rotateSeat,
+  seatDistance,
   sortHand,
 } from './cards'
 
@@ -69,6 +70,13 @@ describe('seats', () => {
     expect(partnerOf('E')).toBe('W')
     expect(pairOf('S')).toBe('NS')
     expect(pairOf('W')).toBe('EW')
+  })
+
+  it('measures clockwise distance between seats', () => {
+    expect(seatDistance('S', 'S')).toBe(0)
+    expect(seatDistance('S', 'W')).toBe(1)
+    expect(seatDistance('S', 'N')).toBe(2)
+    expect(seatDistance('S', 'E')).toBe(3)
   })
 
   it('rotates clockwise, including negative steps', () => {

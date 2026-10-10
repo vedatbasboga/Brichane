@@ -1,11 +1,12 @@
 // Varsayılan konu tarifleri. Aralıklar başlangıç değerleridir; hocanın sistemine göre düzeltilecek.
+// Tarifler Güney dağıtıcıymış gibi yazılır; üretimde konu eli board'un dağıtıcısına çevrilir.
 
-import type { Range, Recipe } from '../engine'
+import type { Recipe, SeatConstraint } from '../engine'
 
-const ONE_NT_OPENER = {
-  hcp: [15, 17] as Range,
-  shape: 'balanced' as const,
-  suits: { S: [0, 4] as Range, H: [0, 4] as Range },
+const ONE_NT_OPENER: SeatConstraint = {
+  hcp: [15, 17],
+  shape: 'balanced',
+  suits: { S: [0, 4], H: [0, 4] },
 }
 
 export const DEFAULT_TOPICS: Recipe[] = [
@@ -13,7 +14,7 @@ export const DEFAULT_TOPICS: Recipe[] = [
     id: '1nt-opening',
     name: '1 Sanzatu açılışı',
     category: 'Açılışlar',
-    description: "G: 15–17 HP, dengeli, 5'li majör yok.",
+    description: "Açan: 15–17 HP, dengeli, 5'li majör yok.",
     dealer: 'S',
     seats: { S: ONE_NT_OPENER },
   },
@@ -21,7 +22,7 @@ export const DEFAULT_TOPICS: Recipe[] = [
     id: '2nt-opening',
     name: '2 Sanzatu açılışı',
     category: 'Açılışlar',
-    description: "G: 20–21 HP, dengeli, 5'li majör yok.",
+    description: "Açan: 20–21 HP, dengeli, 5'li majör yok.",
     dealer: 'S',
     seats: { S: { hcp: [20, 21], shape: 'balanced', suits: { S: [0, 4], H: [0, 4] } } },
   },
@@ -29,15 +30,32 @@ export const DEFAULT_TOPICS: Recipe[] = [
     id: '1-major-opening',
     name: '1 Majör açılış',
     category: 'Açılışlar',
-    description: 'G: 12–21 HP, 5+ ♥ veya ♠.',
+    description: 'Açan: 12–21 HP, 5+ ♥ veya ♠.',
     dealer: 'S',
     seats: { S: { hcp: [12, 21], anySuit: { suits: ['S', 'H'], length: [5, 13] } } },
+  },
+  {
+    id: '1-minor-opening',
+    name: '1 Minör açılış',
+    category: 'Açılışlar',
+    description: "Açan: 12–21 HP, 5'li majör yok; 1SA (15–17) veya 2SA (20–21) dengeli eli değil.",
+    dealer: 'S',
+    seats: {
+      S: {
+        hcp: [12, 21],
+        suits: { S: [0, 4], H: [0, 4] },
+        exclude: [
+          { hcp: [15, 17], shape: 'balanced' },
+          { hcp: [20, 21], shape: 'balanced' },
+        ],
+      },
+    },
   },
   {
     id: 'weak-two',
     name: 'Zayıf iki açılış',
     category: 'Açılışlar',
-    description: "G: 6–10 HP, 6'lı ♦, ♥ veya ♠.",
+    description: "Açan: 6–10 HP, 6'lı ♦, ♥ veya ♠.",
     dealer: 'S',
     seats: { S: { hcp: [6, 10], anySuit: { suits: ['D', 'H', 'S'], length: [6, 6] } } },
   },
@@ -45,7 +63,7 @@ export const DEFAULT_TOPICS: Recipe[] = [
     id: 'stayman',
     name: 'Stayman',
     category: '1SA sonrası',
-    description: "G: 1SA eli; K: 8+ HP, 4'lü majör.",
+    description: "Açan: 1SA eli; ortağı: 8+ HP, 4'lü majör.",
     dealer: 'S',
     seats: {
       S: ONE_NT_OPENER,
@@ -60,7 +78,7 @@ export const DEFAULT_TOPICS: Recipe[] = [
     id: 'transfer',
     name: 'Transfer',
     category: '1SA sonrası',
-    description: 'G: 1SA eli; K: 5+ majör.',
+    description: 'Açan: 1SA eli; ortağı: 5+ majör.',
     dealer: 'S',
     seats: { S: ONE_NT_OPENER, N: { anySuit: { suits: ['S', 'H'], length: [5, 13] } } },
   },
@@ -68,7 +86,7 @@ export const DEFAULT_TOPICS: Recipe[] = [
     id: 'takeout-double',
     name: 'Takeout kontr',
     category: 'Rekabet',
-    description: 'D: 1♥ açılışı; G: 12+ HP, ♥ kısa, ♠ desteği.',
+    description: 'Rakip 1♥ açar; kontr eden: 12+ HP, ♥ kısa, ♠ desteği.',
     dealer: 'E',
     seats: {
       E: { hcp: [12, 21], suits: { H: [5, 13] } },
@@ -79,7 +97,7 @@ export const DEFAULT_TOPICS: Recipe[] = [
     id: 'overcall',
     name: 'Renk müdahalesi',
     category: 'Rekabet',
-    description: 'D: açılış; G: 8–16 HP, 5+ renk.',
+    description: 'Rakip açar; müdahale eden: 8–16 HP, 5+ renk.',
     dealer: 'E',
     seats: {
       E: { hcp: [12, 21] },
@@ -90,7 +108,7 @@ export const DEFAULT_TOPICS: Recipe[] = [
     id: 'slam',
     name: 'Blackwood / şlem',
     category: 'Şlem',
-    description: 'KG toplam 33+ HP, 8+ fit.',
+    description: 'Ortaklık toplam 33+ HP, 8+ fit.',
     dealer: 'S',
     seats: {},
     pair: { NS: { hcp: [33, 40], fit: { length: [8, 13] } } },
@@ -99,7 +117,7 @@ export const DEFAULT_TOPICS: Recipe[] = [
     id: 'nt-play',
     name: 'Sanzatu oyun planı',
     category: 'Oyun',
-    description: 'KG 25–27 HP, iki el dengeli.',
+    description: 'Ortaklık 25–27 HP, iki el dengeli.',
     dealer: 'S',
     seats: { N: { shape: 'balanced' }, S: { shape: 'balanced' } },
     pair: { NS: { hcp: [25, 27] } },
