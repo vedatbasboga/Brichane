@@ -5,6 +5,18 @@
 
 Bu plan Claude Code ile **faz faz** uygulanmak üzere yazıldı. Her fazı ayrı bir görev olarak verin, "Bitti sayılır" maddeleri sağlanmadan sonraki faza geçmeyin.
 
+## İlerleme
+
+- [x] Faz 1 — Proje iskeleti
+- [ ] Faz 2 — Briç motoru (çekirdek)
+- [ ] Faz 3 — Arayüz: üret ve incele
+- [ ] Faz 4 — Konu kütüphanesi
+- [ ] Faz 5 — Firebase bağlantısı (Auth olmadan)
+- [ ] Faz 6 — Çift kukla analizi (DDS)
+- [ ] Faz 7 — Dışa aktarma ve baskı
+- [ ] Faz 8 — Test ve iyileştirme (hoca ile)
+- [ ] Faz 9 — Sonraki etap (şimdilik yapılmayacak)
+
 ---
 
 ## 0. Kapsam ve kararlar
