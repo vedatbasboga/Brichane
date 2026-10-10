@@ -1,18 +1,24 @@
-import { useState, type FormEvent } from 'react'
+import { useMemo, useState, type FormEvent } from 'react'
+import { Link, useSearchParams } from 'react-router'
 import { DealCard } from '../components/DealCard'
 import { DealDialog } from '../components/DealDialog'
 import { dealCaption } from '../components/format'
 import { TopicSelect } from '../components/TopicSelect'
-import { DEFAULT_TOPICS } from '../data/topics'
 import { useDealGenerator } from '../hooks/useDealGenerator'
+import { useTopics } from '../hooks/topicsContext'
 import { tr } from '../i18n/tr'
 
 const MAX_DEALS = 128
 const DEFAULT_COUNT = 16
 
 export function GeneratePage() {
-  const topics = DEFAULT_TOPICS
-  const [topicId, setTopicId] = useState(topics[0].id)
+  const { topics: allTopics, loading } = useTopics()
+  const topics = useMemo(
+    () => allTopics.filter((t) => !t.archived).map((t) => t.recipe),
+    [allTopics],
+  )
+  const [searchParams] = useSearchParams()
+  const [topicId, setTopicId] = useState(searchParams.get('topic') ?? '')
   const [countText, setCountText] = useState(String(DEFAULT_COUNT))
   const [seed, setSeed] = useState('')
   const [focusOnly, setFocusOnly] = useState(false)
@@ -28,7 +34,7 @@ export function GeneratePage() {
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
-    if (!countValid) return
+    if (!countValid || !topic) return
     setSelected(null)
     generate({ recipe: topic, count, seed })
   }
@@ -43,6 +49,9 @@ export function GeneratePage() {
     }
   }
 
+  if (loading) return <p className="text-slate-500">{tr.topics.loading}</p>
+  if (!topic) return <p className="text-slate-500">{tr.topics.notFound}</p>
+
   return (
     <div className="flex flex-col gap-6">
       <form
@@ -53,8 +62,16 @@ export function GeneratePage() {
           <label htmlFor="topic" className="text-sm font-medium text-slate-700">
             {tr.generate.topic}
           </label>
-          <TopicSelect id="topic" topics={topics} value={topicId} onChange={setTopicId} />
-          {topic.description && <p className="text-xs text-slate-500">{topic.description}</p>}
+          <TopicSelect id="topic" topics={topics} value={topic.id} onChange={setTopicId} />
+          <p className="text-xs text-slate-500">
+            {topic.description}{' '}
+            <Link
+              to={`/topics/${encodeURIComponent(topic.id)}`}
+              className="font-medium whitespace-nowrap text-emerald-700 hover:underline"
+            >
+              {tr.topics.editTopic}
+            </Link>
+          </p>
         </div>
 
         <div className="flex flex-col gap-1">

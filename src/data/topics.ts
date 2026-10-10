@@ -57,7 +57,7 @@ export const DEFAULT_TOPICS: Recipe[] = [
     category: 'Açılışlar',
     description: "Açan: 6–10 HP, 6'lı ♦, ♥ veya ♠.",
     dealer: 'S',
-    seats: { S: { hcp: [6, 10], anySuit: { suits: ['D', 'H', 'S'], length: [6, 6] } } },
+    seats: { S: { hcp: [6, 10], anySuit: { suits: ['S', 'H', 'D'], length: [6, 6] } } },
   },
   {
     id: 'stayman',
@@ -86,22 +86,28 @@ export const DEFAULT_TOPICS: Recipe[] = [
     id: 'takeout-double',
     name: 'Takeout kontr',
     category: 'Rekabet',
-    description: 'Rakip 1♥ açar; kontr eden: 12+ HP, ♥ kısa, ♠ desteği.',
+    description: 'Rakip bir renk açar (5+); kontr eden: 12+ HP, o renkte kısa (0–1).',
     dealer: 'E',
+    topicSuit: { suits: ['S', 'H', 'D', 'C'] },
     seats: {
-      E: { hcp: [12, 21], suits: { H: [5, 13] } },
-      S: { hcp: [12, 21], suits: { H: [0, 1], S: [3, 5] } },
+      E: { hcp: [12, 21], topicSuit: [5, 13] },
+      S: { hcp: [12, 21], topicSuit: [0, 1] },
     },
   },
   {
     id: 'overcall',
     name: 'Renk müdahalesi',
     category: 'Rekabet',
-    description: 'Rakip açar; müdahale eden: 8–16 HP, 5+ renk.',
+    description: 'Rakip bir renk açar (5+); müdahale eden: 8–16 HP, başka bir renkte 5+.',
     dealer: 'E',
+    topicSuit: { suits: ['S', 'H', 'D', 'C'] },
     seats: {
-      E: { hcp: [12, 21] },
-      S: { hcp: [8, 16], anySuit: { suits: ['S', 'H', 'D', 'C'], length: [5, 13] } },
+      E: { hcp: [12, 21], topicSuit: [5, 13] },
+      S: {
+        hcp: [8, 16],
+        topicSuit: [0, 3],
+        anySuit: { suits: ['S', 'H', 'D', 'C'], length: [5, 13] },
+      },
     },
   },
   {
@@ -125,12 +131,16 @@ export const DEFAULT_TOPICS: Recipe[] = [
 ]
 
 /** Kategoriye göre gruplar, ilk görülme sırasını korur. */
-export function groupByCategory(topics: readonly Recipe[]): [string, Recipe[]][] {
-  const groups = new Map<string, Recipe[]>()
-  for (const topic of topics) {
-    const group = groups.get(topic.category)
-    if (group) group.push(topic)
-    else groups.set(topic.category, [topic])
+export function groupByCategory<T>(
+  items: readonly T[],
+  categoryOf: (item: T) => string,
+): [string, T[]][] {
+  const groups = new Map<string, T[]>()
+  for (const item of items) {
+    const category = categoryOf(item)
+    const group = groups.get(category)
+    if (group) group.push(item)
+    else groups.set(category, [item])
   }
   return [...groups]
 }

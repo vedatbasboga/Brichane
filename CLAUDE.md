@@ -32,7 +32,14 @@ Ağır işler (el üretimi, DDS) Web Worker'da. Veri Firestore'da, yayın Fireba
 - Tarif (`Recipe`) modeli `recipe.ts` içinde; koltuk ve ortaklık kısıtları, `anySuit` ("♥ veya ♠ 5+"), `exclude` ("1SA eli değil"), `fit`.
 - Tarifler Güney dağıtıcıymış gibi yazılır. `placement: 'balanced'` (varsayılan) dağıtımı board'un standart dağıtıcısına çevirir; konu eli dört koltuğa eşit dağılır. Konu açıklamaları bu yüzden koltuk adı değil rol kullanır ("Açan:", "ortağı:").
 - `generateDeals` reddetme örneklemesi yapar; `dealWorker.ts` bunu Web Worker'da çalıştırır.
+- `topicSuit` (konu rengi): tarifte izin verilen renklerden biri seçilir, koltukların `topicSuit` aralığı aynı renge uygulanır (takeout kontr: rakip X'te 5+, kontr eden X'te 0–1).
 - Ortak test verileri: `src/engine/testFixtures.ts`.
+
+## Konular (`src/data/`)
+
+- `topics.ts`: varsayılan tarifler. `topicDraft.ts`: form modeli (tam aralık = koşul yok) ↔ `Recipe` dönüşümü ve doğrulama.
+- `topicStore.ts`: `TopicRepository` arayüzü; şimdilik localStorage, Faz 5'te Firestore. Hiç düzenlenmemiş varsayılanlar koddaki güncel tarifle yenilenir (`mergeDefaults`).
+- Silme yok, arşivleme var. Konulara `useTopics()` (`TopicsProvider`) ile erişilir.
 
 ## Klasör yapısı
 
@@ -43,7 +50,7 @@ src/
   data/          # varsayılan konu tarifleri
   firebase/      # firebase init + firestore erişim katmanı
   components/    # HandView, DealCard, DealDialog, TopicSelect...
-  hooks/         # useDealGenerator (Worker yönetimi)
-  pages/         # Generate, Sets, Topics, Print
+  hooks/         # useDealGenerator (Worker yönetimi), topicsContext
+  pages/         # GeneratePage, TopicsPage, TopicEditPage (Sets, Print sonra)
   i18n/tr.ts     # arayüz metinleri
 ```

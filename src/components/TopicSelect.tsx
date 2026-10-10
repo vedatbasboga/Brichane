@@ -17,7 +17,7 @@ export function TopicSelect({ id, topics, value, onChange }: TopicSelectProps) {
       onChange={(event) => onChange(event.target.value)}
       className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900"
     >
-      {groupByCategory(topics).map(([category, items]) => (
+      {groupByCategory(topics, (topic) => topic.category).map(([category, items]) => (
         <optgroup key={category} label={category}>
           {items.map((topic) => (
             <option key={topic.id} value={topic.id}>

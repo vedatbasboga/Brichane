@@ -37,6 +37,8 @@ export interface SeatConstraint {
   anySuit?: AnySuitConstraint
   controls?: Range
   ltc?: Range
+  /** Konu rengindeki uzunluk (tarifte `topicSuit` seçiliyse). */
+  topicSuit?: Range
   /** El bunlardan hiçbirine uymamalı (örn. minör açılış: "1SA eli değil"). */
   exclude?: readonly SeatConstraint[]
 }
@@ -70,6 +72,11 @@ export interface Recipe {
   seats: Partial<Record<Seat, SeatConstraint>>
   pair?: Partial<Record<Pair, PairConstraint>>
   placement?: Placement
+  /**
+   * Konu rengi: bu renklerden biri seçilir ve koltukların `topicSuit` koşulları aynı renge
+   * uygulanır (örn. rakip bir renkte 5+ açar, kontr eden o renkte kısa).
+   */
+  topicSuit?: { suits: readonly Suit[] }
 }
 
 export function inRange(value: number, [min, max]: Range): boolean {
@@ -82,9 +89,10 @@ export function matchesShape(cls: ShapeClass, shape: ShapeConstraint): boolean {
   return shape.includes(cls)
 }
 
-export function matchesSeat(hand: readonly Card[], c: SeatConstraint): boolean {
+export function matchesSeat(hand: readonly Card[], c: SeatConstraint, topicSuit?: Suit): boolean {
   if (c.hcp && !inRange(hcp(hand), c.hcp)) return false
-  if (c.suits || c.anySuit) {
+  const topicRange = topicSuit ? c.topicSuit : undefined
+  if (c.suits || c.anySuit || topicRange) {
     const lengths = suitLengths(hand)
     if (c.suits) {
       for (const suit of Object.keys(c.suits) as Suit[]) {
@@ -96,11 +104,12 @@ export function matchesSeat(hand: readonly Card[], c: SeatConstraint): boolean {
       const { suits, length } = c.anySuit
       if (!suits.some((suit) => inRange(lengths[suit], length))) return false
     }
+    if (topicSuit && topicRange && !inRange(lengths[topicSuit], topicRange)) return false
   }
   if (c.shape && !matchesShape(shapeClass(hand), c.shape)) return false
   if (c.controls && !inRange(controls(hand), c.controls)) return false
   if (c.ltc && !inRange(losingTrickCount(hand), c.ltc)) return false
-  if (c.exclude?.some((excluded) => matchesSeat(hand, excluded))) return false
+  if (c.exclude?.some((excluded) => matchesSeat(hand, excluded, topicSuit))) return false
   return true
 }
 
@@ -115,18 +124,24 @@ export function matchesPair(deal: Deal, pair: Pair, c: PairConstraint): boolean 
   return true
 }
 
-export function matchesRecipe(deal: Deal, recipe: Recipe): boolean {
+function matchesSeats(deal: Deal, recipe: Recipe, topicSuit?: Suit): boolean {
   for (const seat of SEATS) {
     const c = recipe.seats[seat]
-    if (c && !matchesSeat(deal[seat], c)) return false
+    if (c && !matchesSeat(deal[seat], c, topicSuit)) return false
   }
+  return true
+}
+
+export function matchesRecipe(deal: Deal, recipe: Recipe): boolean {
   if (recipe.pair) {
     for (const pair of PAIRS) {
       const c = recipe.pair[pair]
       if (c && !matchesPair(deal, pair, c)) return false
     }
   }
-  return true
+  const topicSuits = recipe.topicSuit?.suits
+  if (!topicSuits?.length) return matchesSeats(deal, recipe)
+  return topicSuits.some((suit) => matchesSeats(deal, recipe, suit))
 }
 
 /** Tarifin koşul koyduğu koltuklar ("konu eli"), N E S W sırasıyla. */

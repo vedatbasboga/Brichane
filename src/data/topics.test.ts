@@ -41,7 +41,7 @@ describe('DEFAULT_TOPICS', () => {
 
 describe('groupByCategory', () => {
   it('groups topics keeping first-seen order', () => {
-    const groups = groupByCategory(DEFAULT_TOPICS)
+    const groups = groupByCategory(DEFAULT_TOPICS, (topic) => topic.category)
     expect(groups.map(([category]) => category)).toEqual([
       'Açılışlar',
       '1SA sonrası',

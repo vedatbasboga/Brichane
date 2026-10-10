@@ -1,12 +1,6 @@
 import { SUITS, SUIT_SYMBOLS, handBySuit, hcp, rankLabel, type Hand, type Seat } from '../engine'
 import { tr } from '../i18n/tr'
-
-const SUIT_COLORS = {
-  S: 'text-slate-900',
-  H: 'text-red-600',
-  D: 'text-red-600',
-  C: 'text-slate-900',
-}
+import { SUIT_COLORS } from './suitColors'
 
 interface HandViewProps {
   hand: Hand

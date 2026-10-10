@@ -10,7 +10,7 @@ Bu plan Claude Code ile **faz faz** uygulanmak üzere yazıldı. Her fazı ayrı
 - [x] Faz 1 — Proje iskeleti
 - [x] Faz 2 — Briç motoru (çekirdek)
 - [x] Faz 3 — Arayüz: üret ve incele
-- [ ] Faz 4 — Konu kütüphanesi
+- [x] Faz 4 — Konu kütüphanesi
 - [ ] Faz 5 — Firebase bağlantısı (Auth olmadan)
 - [ ] Faz 6 — Çift kukla analizi (DDS)
 - [ ] Faz 7 — Dışa aktarma ve baskı
@@ -169,7 +169,7 @@ Aralıklar **hocanın sistemine göre** düzeltilecek; aşağıdakiler başlang�
 - Liste + yeni konu ekle / düzenle / kopyala
 - Form tabanlı tarif editörü (JSON yazmaya gerek yok): her koltuk için HP kaydırıcısı, dağılım seçimi, renk uzunlukları
 - "Dene" butonu: tarifi kaydetmeden 4 el üretip gösterir, gözlenen olasılığı yazar
-- Konular Firestore'da tutulur; varsayılanlar ilk açılışta yüklenir
+- Konular Firestore'da tutulur; varsayılanlar ilk açılışta yüklenir *(Faz 4'te tarayıcıda (localStorage) tutuluyor; Faz 5'te aynı arayüzle Firestore'a geçecek)*
 
 **Bitti sayılır:** Hoca kod bilmeden yeni bir konu tanımlayıp üretebiliyor.
 

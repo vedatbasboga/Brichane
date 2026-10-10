@@ -102,6 +102,40 @@ describe('matchesRecipe', () => {
     expect(matchesRecipe(deal, { ...recipe, pair: { NS: { hcp: [25, 27] } } })).toBe(false)
   })
 
+  describe('topic suit', () => {
+    // B'nin tek 5'lisi ♣; K'de ♣ 3'lü.
+    const base: Recipe = {
+      ...ONE_NT_RECIPE,
+      topicSuit: { suits: ['S', 'H', 'D', 'C'] },
+      seats: { W: { topicSuit: [5, 13] }, N: { topicSuit: [3, 3] } },
+    }
+
+    it('binds all seats to the same chosen suit', () => {
+      expect(matchesRecipe(deal, base)).toBe(true)
+      expect(
+        matchesRecipe(deal, { ...base, seats: { ...base.seats, N: { topicSuit: [4, 13] } } }),
+      ).toBe(false)
+    })
+
+    it('only considers the allowed suits', () => {
+      expect(matchesRecipe(deal, { ...base, topicSuit: { suits: ['S', 'H'] } })).toBe(false)
+    })
+
+    it('applies the chosen suit inside exclusions', () => {
+      const recipe: Recipe = {
+        ...base,
+        seats: { W: { topicSuit: [5, 13] }, N: { exclude: [{ topicSuit: [3, 3] }] } },
+      }
+      expect(matchesRecipe(deal, recipe)).toBe(false)
+    })
+
+    it('ignores seat topic-suit ranges when the recipe has no topic suit', () => {
+      expect(
+        matchesRecipe(deal, { ...base, topicSuit: undefined, seats: { N: { topicSuit: [9, 9] } } }),
+      ).toBe(true)
+    })
+  })
+
   it('matches everything when there are no constraints', () => {
     expect(matchesRecipe(deal, { ...ONE_NT_RECIPE, seats: {}, pair: undefined })).toBe(true)
   })
