@@ -2,6 +2,7 @@ import {
   PAIR_SEATS,
   PAIRS,
   SEATS,
+  SUITS,
   type Card,
   type Deal,
   type Pair,
@@ -39,6 +40,8 @@ export interface SeatConstraint {
   ltc?: Range
   /** Konu rengindeki uzunluk (tarifte `topicSuit` seçiliyse). */
   topicSuit?: Range
+  /** Konu rengi bu elin açacağı renk olmalı: en uzun renk, eşitlikte yüksek renk. */
+  topicSuitLongest?: boolean
   /** El bunlardan hiçbirine uymamalı (örn. minör açılış: "1NT eli değil"). */
   exclude?: readonly SeatConstraint[]
 }
@@ -106,11 +109,20 @@ export function matchesSeat(hand: readonly Card[], c: SeatConstraint, topicSuit?
     }
     if (topicSuit && topicRange && !inRange(lengths[topicSuit], topicRange)) return false
   }
+  if (c.topicSuitLongest && topicSuit && !isOpeningSuit(suitLengths(hand), topicSuit)) return false
   if (c.shape && !matchesShape(shapeClass(hand), c.shape)) return false
   if (c.controls && !inRange(controls(hand), c.controls)) return false
   if (c.ltc && !inRange(losingTrickCount(hand), c.ltc)) return false
   if (c.exclude?.some((excluded) => matchesSeat(hand, excluded, topicSuit))) return false
   return true
+}
+
+/** En uzun renk mi (eşit uzunlukta daha yüksek renk yoksa)? Renk sırası ♠ ♥ ♦ ♣. */
+export function isOpeningSuit(lengths: Record<Suit, number>, suit: Suit): boolean {
+  const rank = SUITS.indexOf(suit)
+  return SUITS.every((other, i) =>
+    i < rank ? lengths[other] < lengths[suit] : lengths[other] <= lengths[suit],
+  )
 }
 
 export function matchesPair(deal: Deal, pair: Pair, c: PairConstraint): boolean {

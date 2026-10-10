@@ -2,6 +2,7 @@
 // Bu test kırılırsa üretim yöntemi ya da bir varsayılan konu değişmiştir; eski bağlantılar
 // artık farklı eller verir. Bilerek yapılan bir değişiklikse SHARE_VERSION artırılmalı
 // (eski bağlantılar uyarı gösterir) ve buradaki beklenen değerler güncellenmelidir.
+// Yalnızca bir konunun tarifi değiştiyse sürüm gerekmez: bağlantıdaki "iz" zaten uyarı verir.
 
 import { describe, expect, it } from 'vitest'
 import { dealToPbn, generateDeals } from '../engine'
@@ -22,9 +23,9 @@ const GOLDEN = [
     topicId: 'takeout-double',
     seed: 'golden-2',
     deals: [
-      [1, 'N', 'None', 'N:AKQT83.6..A98654 97654.AKJ5.A64.3 2.Q8743.KT52.KJT J.T92.QJ9873.Q72'],
-      [2, 'E', 'NS', 'N:93.AJ4.T9762.QJT 8542.K7.AKQJ3.A6 AKQJ7.Q32.8.9874 T6.T9865.54.K532'],
-      [3, 'S', 'EW', 'N:J732.Q643.AJ6.92 A98.KT52.T843.T4 54.A.KQ975.KJ876 KQT6.J987.2.AQ53'],
+      [1, 'N', 'None', 'N:8542.K7.AKQJ3.A6 AKQJ7.Q32.8.9874 T6.T9865.54.K532 93.AJ4.T9762.QJT'],
+      [2, 'E', 'NS', 'N:A98.KT52.T843.T4 54.A.KQ975.KJ876 KQT6.J987.2.AQ53 J732.Q643.AJ6.92'],
+      [3, 'S', 'EW', 'N:75432.5.QJ73.AT6 9.AQJ972.6542.72 KQT.63.AKT98.J98 AJ86.KT84..KQ543'],
     ],
   },
   {

@@ -43,6 +43,7 @@ export interface SeatDraft {
   anySuits: Suit[]
   anyLength: Bounds
   topicSuit: Bounds
+  topicSuitLongest: boolean
   controls: Bounds
   ltc: Bounds
   exclude: ExcludeDraft[]
@@ -94,6 +95,7 @@ export function emptySeatDraft(): SeatDraft {
     anySuits: [],
     anyLength: full(LENGTH_BOUNDS),
     topicSuit: full(LENGTH_BOUNDS),
+    topicSuitLongest: false,
     controls: full(CONTROLS_BOUNDS),
     ltc: full(LTC_BOUNDS),
     exclude: [],
@@ -151,6 +153,7 @@ function seatToDraft(c: SeatConstraint | undefined): SeatDraft {
     anySuits: c.anySuit ? [...c.anySuit.suits] : [],
     anyLength: toBounds(c.anySuit?.length, LENGTH_BOUNDS),
     topicSuit: toBounds(c.topicSuit, LENGTH_BOUNDS),
+    topicSuitLongest: c.topicSuitLongest === true,
     controls: toBounds(c.controls, CONTROLS_BOUNDS),
     ltc: toBounds(c.ltc, LTC_BOUNDS),
     exclude: (c.exclude ?? []).map((ex) => ({
@@ -180,6 +183,7 @@ function draftToSeat(d: SeatDraft): SeatConstraint {
   }
   const topicSuit = orUndefined(d.topicSuit, LENGTH_BOUNDS)
   if (topicSuit) c.topicSuit = topicSuit
+  if (d.topicSuitLongest) c.topicSuitLongest = true
   const controls = orUndefined(d.controls, CONTROLS_BOUNDS)
   if (controls) c.controls = controls
   const ltc = orUndefined(d.ltc, LTC_BOUNDS)
@@ -288,7 +292,7 @@ export function validateDraft(draft: TopicDraft): string[] {
     const maxSum = SUITS.reduce((sum, suit) => sum + d.suits[suit][1], 0)
     if (minSum > 13) errors.push(e.suitMinSum(where))
     if (maxSum < 13) errors.push(e.suitMaxSum(where))
-    if (!isFull(d.topicSuit, LENGTH_BOUNDS)) usesTopicSuit = true
+    if (!isFull(d.topicSuit, LENGTH_BOUNDS) || d.topicSuitLongest) usesTopicSuit = true
   }
   for (const p of PAIRS) {
     const d = draft.pairs[p]

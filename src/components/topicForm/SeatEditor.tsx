@@ -106,13 +106,24 @@ export function SeatEditor({ seat, isDealer, topicSuitEnabled, draft, onChange }
           </Field>
 
           {topicSuitEnabled && (
-            <RangeField
-              label={tr.editor.topicSuitLength}
-              name={`${seatName} ${tr.editor.topicSuitLength}`}
-              value={draft.topicSuit}
-              bounds={LENGTH_BOUNDS}
-              onChange={(topicSuit) => set({ topicSuit })}
-            />
+            <div className="flex flex-col gap-2">
+              <RangeField
+                label={tr.editor.topicSuitLength}
+                name={`${seatName} ${tr.editor.topicSuitLength}`}
+                value={draft.topicSuit}
+                bounds={LENGTH_BOUNDS}
+                onChange={(topicSuit) => set({ topicSuit })}
+              />
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={draft.topicSuitLongest}
+                  onChange={(event) => set({ topicSuitLongest: event.target.checked })}
+                  className="size-4 accent-emerald-700"
+                />
+                {tr.editor.topicSuitLongest}
+              </label>
+            </div>
           )}
 
           <details className="group rounded-lg border border-slate-200 p-3">

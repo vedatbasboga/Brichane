@@ -92,11 +92,11 @@ export const DEFAULT_TOPICS: Recipe[] = [
     id: 'takeout-double',
     name: 'Takeout kontr',
     category: 'Rekabet',
-    description: 'Rakip bir renk açar (5+); kontr eden: 12+ HP, o renkte kısa (0–1).',
+    description: 'Rakip bir renk açar (5+); kontr eden: 12+ HP, açılan renkte kısa (0–1).',
     dealer: 'E',
     topicSuit: { suits: ['S', 'H', 'D', 'C'] },
     seats: {
-      E: { hcp: [12, 21], topicSuit: [5, 13] },
+      E: { hcp: [12, 21], topicSuit: [5, 13], topicSuitLongest: true },
       S: { hcp: [12, 21], topicSuit: [0, 1] },
     },
   },
@@ -108,7 +108,7 @@ export const DEFAULT_TOPICS: Recipe[] = [
     dealer: 'E',
     topicSuit: { suits: ['S', 'H', 'D', 'C'] },
     seats: {
-      E: { hcp: [12, 21], topicSuit: [5, 13] },
+      E: { hcp: [12, 21], topicSuit: [5, 13], topicSuitLongest: true },
       S: {
         hcp: [8, 16],
         topicSuit: [0, 3],

@@ -156,6 +156,7 @@ export const tr = {
     anySuit: 'Şu renklerden en az biri',
     anySuitLength: 'Uzunluğu',
     topicSuitLength: 'Konu rengindeki uzunluk',
+    topicSuitLongest: 'Konu rengi bu elin açacağı renk (en uzun; eşitse yüksek renk)',
     advanced: 'Gelişmiş',
     controls: 'Kontrol (A=2, K=1)',
     ltc: 'Kaybeden löve (LTC)',

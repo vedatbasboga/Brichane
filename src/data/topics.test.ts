@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { generateDeals, hcp, shapeClass, suitLengths } from '../engine'
+import {
+  SUITS,
+  generateDeals,
+  hcp,
+  rotateSeat,
+  shapeClass,
+  suitLengths,
+  type Hand,
+  type Suit,
+} from '../engine'
 import { DEFAULT_TOPICS, groupByCategory } from './topics'
 
 describe('DEFAULT_TOPICS', () => {
@@ -35,6 +44,38 @@ describe('DEFAULT_TOPICS', () => {
       const balanced = shapeClass(opener) === 'balanced'
       expect(balanced && points >= 15 && points <= 17).toBe(false)
       expect(balanced && points >= 20).toBe(false)
+    }
+  })
+})
+
+/** Elin açacağı renk: en uzun, eşitlikte yüksek renk (motordan bağımsız hesap). */
+function openingSuit(hand: Hand): Suit {
+  const lengths = suitLengths(hand)
+  return SUITS.reduce((best, suit) => (lengths[suit] > lengths[best] ? suit : best))
+}
+
+describe('competitive topics use the suit the opponent actually opens', () => {
+  it('takeout doubler is short in the opened suit', () => {
+    const topic = DEFAULT_TOPICS.find((t) => t.id === 'takeout-double')!
+    const { deals } = generateDeals({ recipe: topic, count: 200, seed: 'takeout' })
+    for (const deal of deals) {
+      const opener = deal.hands[deal.dealer]
+      const doubler = deal.hands[rotateSeat(deal.dealer, 1)]
+      const opened = openingSuit(opener)
+      expect(suitLengths(opener)[opened]).toBeGreaterThanOrEqual(5)
+      expect(suitLengths(doubler)[opened]).toBeLessThanOrEqual(1)
+      expect(hcp(doubler)).toBeGreaterThanOrEqual(12)
+    }
+  })
+
+  it('overcaller has a 5+ suit other than the opened suit', () => {
+    const topic = DEFAULT_TOPICS.find((t) => t.id === 'overcall')!
+    const { deals } = generateDeals({ recipe: topic, count: 200, seed: 'overcall' })
+    for (const deal of deals) {
+      const opened = openingSuit(deal.hands[deal.dealer])
+      const lengths = suitLengths(deal.hands[rotateSeat(deal.dealer, 1)])
+      expect(lengths[opened]).toBeLessThanOrEqual(3)
+      expect(SUITS.some((suit) => suit !== opened && lengths[suit] >= 5)).toBe(true)
     }
   })
 })

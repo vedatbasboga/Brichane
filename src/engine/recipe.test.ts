@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { parsePbnDeal, parsePbnHand as h } from './pbn'
 import {
   focusSeats,
+  isOpeningSuit,
   matchesPair,
   matchesRecipe,
   matchesSeat,
@@ -138,6 +139,30 @@ describe('matchesRecipe', () => {
 
   it('matches everything when there are no constraints', () => {
     expect(matchesRecipe(deal, { ...ONE_NT_RECIPE, seats: {}, pair: undefined })).toBe(true)
+  })
+})
+
+describe('isOpeningSuit', () => {
+  it('picks the longest suit, the higher one on ties', () => {
+    const l = (S: number, H: number, D: number, C: number) => ({ S, H, D, C })
+    expect(isOpeningSuit(l(5, 5, 2, 1), 'S')).toBe(true)
+    expect(isOpeningSuit(l(5, 5, 2, 1), 'H')).toBe(false)
+    expect(isOpeningSuit(l(4, 5, 2, 2), 'H')).toBe(true)
+    expect(isOpeningSuit(l(4, 5, 2, 2), 'S')).toBe(false)
+    expect(isOpeningSuit(l(1, 4, 4, 4), 'H')).toBe(true)
+    expect(isOpeningSuit(l(1, 4, 4, 4), 'C')).toBe(false)
+    expect(isOpeningSuit(l(2, 2, 3, 6), 'C')).toBe(true)
+  })
+
+  it('is applied through topicSuitLongest', () => {
+    // B: ♠3 ♥654 ♦J432 ♣QJT98 — açacağı renk ♣
+    const recipe: Recipe = {
+      ...ONE_NT_RECIPE,
+      topicSuit: { suits: ['D', 'C'] },
+      seats: { W: { topicSuit: [4, 13], topicSuitLongest: true } },
+    }
+    expect(matchesRecipe(deal, recipe)).toBe(true)
+    expect(matchesRecipe(deal, { ...recipe, topicSuit: { suits: ['D'] } })).toBe(false)
   })
 })
 
