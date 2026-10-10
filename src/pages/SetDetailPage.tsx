@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router'
 import { DealDialog } from '../components/DealDialog'
 import { DealGrid } from '../components/DealGrid'
 import { PdfButton } from '../components/PdfButton'
+import { ShareButton } from '../components/ShareButton'
 import {
   MAX_BOARD_NOTE_LENGTH,
   MAX_NOTES_LENGTH,
@@ -65,6 +66,8 @@ function SetDetail({ initialSet, initialNotes }: SetDetailProps) {
   const [message, setMessage] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null)
 
   const deals = useMemo(() => set.deals.map(fromSavedDeal), [set.deals])
+  // Kayıtlı setler herkese okunabilir; set sayfasının adresi paylaşım bağlantısıdır.
+  const setUrl = `${window.location.origin}/sets/${set.id}`
   const dirty = title.trim() !== set.title || notes !== set.notes
 
   async function run(action: () => Promise<void>, okText?: string) {
@@ -120,10 +123,6 @@ function SetDetail({ initialSet, initialNotes }: SetDetailProps) {
         <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 self-end text-sm">
           <dt className="text-slate-500">{tr.sets.topic}</dt>
           <dd className="text-slate-900">{set.topicName}</dd>
-          <dt className="text-slate-500">{tr.sets.seed}</dt>
-          <dd>
-            <code className="rounded bg-slate-100 px-1.5 py-0.5 text-slate-900">{set.seed}</code>
-          </dd>
           {set.createdAt && (
             <>
               <dt className="text-slate-500">{tr.sets.created}</dt>
@@ -193,11 +192,12 @@ function SetDetail({ initialSet, initialNotes }: SetDetailProps) {
             />
             {tr.generate.focusOnly}
           </label>
+          <ShareButton url={setUrl} title={set.title} />
           <PdfButton
             getOptions={() => ({
               title: set.title,
               topicName: set.topicName,
-              seed: set.seed,
+              shareUrl: setUrl,
               deals,
               focusOnly,
               notes: set.notes,

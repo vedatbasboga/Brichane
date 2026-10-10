@@ -6,6 +6,9 @@ import type { Recipe, SeatConstraint } from '../engine'
 /** Konu seçicideki "Özel dağılım…" seçeneği. */
 export const CUSTOM_TOPIC_ID = 'custom'
 
+/** Bir sette en fazla el sayısı. */
+export const MAX_DEALS = 128
+
 const ONE_NT_OPENER: SeatConstraint = {
   hcp: [15, 17],
   shape: 'balanced',

@@ -48,8 +48,8 @@ const TURKISH_ASCII: Record<string, string> = {
   Ü: 'u',
 }
 
-/** Örn. ("1 Sanzatu açılışı", "k7m2") → "brichane-1-sanzatu-acilisi-k7m2.pdf". */
-export function pdfFileName(title: string, seed: string): string {
+/** Örn. ("1 Sanzatu açılışı", "2026-10-10") → "brichane-1-sanzatu-acilisi-2026-10-10.pdf". */
+export function pdfFileName(title: string, suffix: string): string {
   const slug = (text: string) =>
     text
       .replace(/[çÇğĞıIİöÖşŞüÜ]/g, (ch) => TURKISH_ASCII[ch])
@@ -57,5 +57,5 @@ export function pdfFileName(title: string, seed: string): string {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '')
       .slice(0, 60)
-  return ['brichane', slug(title), slug(seed)].filter(Boolean).join('-') + '.pdf'
+  return ['brichane', slug(title), slug(suffix)].filter(Boolean).join('-') + '.pdf'
 }

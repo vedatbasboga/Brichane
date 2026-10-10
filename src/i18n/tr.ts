@@ -28,17 +28,12 @@ export const tr = {
     topic: 'Konu',
     count: 'El sayısı',
     countInvalid: (max: number) => `1 ile ${max} arasında bir sayı girin.`,
-    seed: 'Set kodu',
-    seedPlaceholder: 'Boş = rastgele',
-    seedHelp: 'Aynı konu, el sayısı ve kodla aynı eller gelir.',
     submit: 'Üret',
     cancel: 'Durdur',
     running: 'Üretiliyor…',
     progress: (found: number, count: number) => `${found} / ${count} el`,
     attempts: (attempts: number) => `${numberFormat.format(attempts)} deneme`,
     summary: (count: number) => `${count} board`,
-    copySeed: 'Kopyala',
-    copied: 'Kopyalandı',
     focusOnly: 'Sadece konu eli',
     exhausted: 'Bu koşulda el bulunamadı, aralıkları genişletin.',
     exhaustedPartial: (found: number, count: number) =>
@@ -58,6 +53,16 @@ export const tr = {
     customCancel: 'Vazgeç',
     customReset: 'Tüm koşulları temizle',
     customFixErrors: 'Uygulamadan önce şunları düzeltin:',
+  },
+
+  share: {
+    button: 'Bağlantıyı paylaş',
+    copied: 'Bağlantı kopyalandı',
+    copyPrompt: 'Bağlantıyı kopyalayın:',
+    invalid: 'Bağlantı geçersiz ya da eksik. Yeni bir set üretebilirsiniz.',
+    topicChanged:
+      'Bu konu, bağlantı oluşturulduktan sonra güncellendi; eller bağlantıyı gönderenin gördüğünden farklı olabilir.',
+    versionChanged: 'Bu bağlantı programın eski bir sürümüyle oluşturuldu; eller farklı olabilir.',
   },
 
   save: {
@@ -80,7 +85,6 @@ export const tr = {
     preparing: 'Hazırlanıyor…',
     error: 'PDF oluşturulamadı:',
     topic: 'Konu',
-    seed: 'Set kodu',
     page: (page: number, pages: number) => `Sayfa ${page}/${pages}`,
   },
 
@@ -106,7 +110,6 @@ export const tr = {
     saving: 'Kaydediliyor…',
     savedChanges: 'Kaydedildi.',
     topic: 'Konu',
-    seed: 'Set kodu',
     created: 'Oluşturulma',
     boardNote: 'Board notu',
     boardNotePlaceholder: 'Örn. oyun planı, ideal açış, dikkat edilecek nokta',

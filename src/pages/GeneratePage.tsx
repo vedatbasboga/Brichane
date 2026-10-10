@@ -1,36 +1,56 @@
-import { useState, type FormEvent } from 'react'
-import { Link } from 'react-router'
+import { useEffect, useState, type FormEvent } from 'react'
+import { Link, useSearchParams } from 'react-router'
 import { CustomTopicDialog } from '../components/CustomTopicDialog'
 import { DealDialog } from '../components/DealDialog'
 import { DealGrid } from '../components/DealGrid'
 import { PdfButton } from '../components/PdfButton'
 import { SaveSetDialog } from '../components/SaveSetDialog'
+import { ShareButton } from '../components/ShareButton'
 import { TopicSelect } from '../components/TopicSelect'
-import { CUSTOM_TOPIC_ID, DEFAULT_TOPICS } from '../data/topics'
 import { buildNewSet, defaultSetTitle } from '../data/savedSet'
+import { parseShareParams, toShareParams, type ShareWarning } from '../data/shareLink'
 import { draftToRecipe, recipeToDraft, type TopicDraft } from '../data/topicDraft'
+import { CUSTOM_TOPIC_ID, DEFAULT_TOPICS, MAX_DEALS } from '../data/topics'
 import type { Recipe } from '../engine'
 import { useDealGenerator } from '../hooks/useDealGenerator'
 import { tr } from '../i18n/tr'
 
-const MAX_DEALS = 128
 const DEFAULT_COUNT = 16
+
+interface GeneratedWith {
+  recipe: Recipe
+  topicId: string
+  count: number
+}
 
 export function GeneratePage() {
   const topics = DEFAULT_TOPICS
-  const [topicId, setTopicId] = useState(topics[0].id)
+  const [searchParams, setSearchParams] = useSearchParams()
+  // Paylaşılan bağlantıyla gelindiyse form o setle başlar ve set kendiliğinden üretilir.
+  const [shared] = useState(() => parseShareParams(searchParams, topics))
+  const sharedTarget = shared.status === 'ok' ? shared.target : null
+  const sharedIsCustom = sharedTarget?.topicId === CUSTOM_TOPIC_ID
+
+  const [topicId, setTopicId] = useState(sharedTarget?.topicId ?? topics[0].id)
   /** Son seçilen hazır konu; özel dağılım bunun ayarlarıyla başlar. */
-  const [presetId, setPresetId] = useState(topics[0].id)
-  const [customDraft, setCustomDraft] = useState<TopicDraft | null>(null)
+  const [presetId, setPresetId] = useState(
+    sharedTarget && !sharedIsCustom ? sharedTarget.topicId : topics[0].id,
+  )
+  const [customDraft, setCustomDraft] = useState<TopicDraft | null>(
+    sharedTarget && sharedIsCustom ? recipeToDraft(sharedTarget.recipe) : null,
+  )
   const [customOpen, setCustomOpen] = useState(false)
-  const [countText, setCountText] = useState(String(DEFAULT_COUNT))
-  const [seed, setSeed] = useState('')
+  const [countText, setCountText] = useState(String(sharedTarget?.count ?? DEFAULT_COUNT))
   const [focusOnly, setFocusOnly] = useState(false)
   const [selected, setSelected] = useState<number | null>(null)
-  const [copied, setCopied] = useState(false)
-  /** Son üretimin tarifi; kayıt bununla yapılır (sonradan konu değişse bile). */
-  const [generatedWith, setGeneratedWith] = useState<{ recipe: Recipe; topicId: string } | null>(
-    null,
+  /** Son üretimin tarifi; kayıt ve paylaşım bununla yapılır (sonradan konu değişse bile). */
+  const [generatedWith, setGeneratedWith] = useState<GeneratedWith | null>(
+    sharedTarget
+      ? { recipe: sharedTarget.recipe, topicId: sharedTarget.topicId, count: sharedTarget.count }
+      : null,
+  )
+  const [linkNotice, setLinkNotice] = useState<ShareWarning | 'invalid' | null>(
+    shared.status === 'invalid' ? 'invalid' : shared.status === 'ok' ? shared.warning : null,
   )
   const [saveOpen, setSaveOpen] = useState(false)
   const [savedSetId, setSavedSetId] = useState<string | null>(null)
@@ -43,21 +63,41 @@ export function GeneratePage() {
   const countValid = Number.isInteger(count) && count >= 1 && count <= MAX_DEALS
   const running = state.status === 'running'
   const result = state.status === 'done' ? state.result : null
+  const shareParams =
+    result && generatedWith ? toShareParams({ ...generatedWith, seed: result.seed }) : null
+  const shareUrl = shareParams ? `${window.location.origin}/?${shareParams}` : null
+
+  useEffect(() => {
+    if (sharedTarget) {
+      const { recipe: sharedRecipe, count: sharedCount, seed } = sharedTarget
+      generate({ recipe: sharedRecipe, count: sharedCount, seed })
+    }
+  }, [sharedTarget, generate])
+
+  // Adres çubuğu her zaman son setin bağlantısını gösterir; yenileyince aynı eller gelir.
+  const shareQuery = shareParams?.toString()
+  useEffect(() => {
+    if (shareQuery) setSearchParams(new URLSearchParams(shareQuery), { replace: true })
+  }, [shareQuery, setSearchParams])
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
     if (!countValid) return
     setSelected(null)
     setSavedSetId(null)
-    setGeneratedWith({ recipe, topicId: isCustom ? CUSTOM_TOPIC_ID : preset.id })
-    generate({ recipe, count, seed })
+    setLinkNotice(null)
+    setGeneratedWith({ recipe, topicId: isCustom ? CUSTOM_TOPIC_ID : preset.id, count })
+    generate({ recipe, count })
   }
 
   async function handleSave(title: string, notes: string) {
     if (!result || !generatedWith) return
     // Firebase yalnızca kaydederken yüklenir; ana sayfa hafif kalır.
     const { createSet } = await import('../firebase/sets')
-    const id = await createSet(buildNewSet({ title, notes, ...generatedWith, result }))
+    const { recipe: savedRecipe, topicId: savedTopicId } = generatedWith
+    const id = await createSet(
+      buildNewSet({ title, notes, topicId: savedTopicId, recipe: savedRecipe, result }),
+    )
     setSavedSetId(id)
     setSaveOpen(false)
   }
@@ -84,21 +124,11 @@ export function GeneratePage() {
     )
   }
 
-  async function copySeed(value: string) {
-    try {
-      await navigator.clipboard.writeText(value)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 1500)
-    } catch {
-      // Pano izni yoksa sessizce geç; tohum ekranda zaten görünüyor.
-    }
-  }
-
   return (
     <div className="flex flex-col gap-6">
       <form
         onSubmit={handleSubmit}
-        className="grid gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-[2fr_1fr_1fr_auto] sm:items-start"
+        className="grid gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-[3fr_1fr_auto] sm:items-start"
       >
         <div className="flex flex-col gap-1">
           <label htmlFor="topic" className="text-sm font-medium text-slate-700">
@@ -146,22 +176,6 @@ export function GeneratePage() {
           )}
         </div>
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="seed" className="text-sm font-medium text-slate-700">
-            {tr.generate.seed}
-          </label>
-          <input
-            id="seed"
-            type="text"
-            value={seed}
-            onChange={(event) => setSeed(event.target.value)}
-            placeholder={tr.generate.seedPlaceholder}
-            autoComplete="off"
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900"
-          />
-          <p className="text-xs text-slate-500">{tr.generate.seedHelp}</p>
-        </div>
-
         <div className="flex flex-col gap-1 sm:pt-6">
           {running ? (
             <button
@@ -195,18 +209,26 @@ export function GeneratePage() {
         />
       )}
 
+      {linkNotice && (
+        <p className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+          {tr.share[linkNotice]}
+        </p>
+      )}
+
       {state.status === 'running' && (
         <div className="flex flex-col gap-1">
           <div
             role="progressbar"
             aria-valuemin={0}
-            aria-valuemax={count}
+            aria-valuemax={state.progress?.count ?? count}
             aria-valuenow={state.progress?.found ?? 0}
             className="h-2 overflow-hidden rounded-full bg-slate-200"
           >
             <div
               className="h-full bg-emerald-600 transition-[width]"
-              style={{ width: `${((state.progress?.found ?? 0) / count) * 100}%` }}
+              style={{
+                width: `${state.progress ? (state.progress.found / state.progress.count) * 100 : 0}%`,
+              }}
             />
           </div>
           <p className="text-sm text-slate-600">
@@ -223,15 +245,17 @@ export function GeneratePage() {
         </p>
       )}
 
-      {state.status === 'idle' && <p className="text-center text-slate-500">{tr.generate.empty}</p>}
+      {state.status === 'idle' && !sharedTarget && (
+        <p className="text-center text-slate-500">{tr.generate.empty}</p>
+      )}
 
-      {result && (
+      {result && generatedWith && (
         <section className="flex flex-col gap-4">
           {result.status === 'exhausted' && (
             <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
               <p className="font-semibold">{tr.generate.exhausted}</p>
               {result.deals.length > 0 && (
-                <p>{tr.generate.exhaustedPartial(result.deals.length, count)}</p>
+                <p>{tr.generate.exhaustedPartial(result.deals.length, generatedWith.count)}</p>
               )}
               <p>{tr.generate.observed(result.observedProbability, result.attempts)}</p>
             </div>
@@ -240,26 +264,10 @@ export function GeneratePage() {
           {result.deals.length > 0 && (
             <>
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
-                  <span className="font-semibold text-slate-900">
-                    {tr.generate.summary(result.deals.length)}
-                  </span>
-                  <span>·</span>
-                  <span>
-                    {tr.generate.seed}:{' '}
-                    <code className="rounded bg-slate-100 px-1.5 py-0.5 text-slate-900">
-                      {result.seed}
-                    </code>
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => copySeed(result.seed)}
-                    className="rounded px-2 py-0.5 text-emerald-700 hover:bg-emerald-50"
-                  >
-                    {copied ? tr.generate.copied : tr.generate.copySeed}
-                  </button>
-                </div>
-                <div className="flex flex-wrap items-center gap-4">
+                <span className="text-sm font-semibold text-slate-900">
+                  {generatedWith.recipe.name} · {tr.generate.summary(result.deals.length)}
+                </span>
+                <div className="flex flex-wrap items-center gap-3">
                   <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-700">
                     <input
                       type="checkbox"
@@ -269,17 +277,16 @@ export function GeneratePage() {
                     />
                     {tr.generate.focusOnly}
                   </label>
-                  {generatedWith && (
-                    <PdfButton
-                      getOptions={() => ({
-                        title: generatedWith.recipe.name,
-                        topicName: generatedWith.recipe.name,
-                        seed: result.seed,
-                        deals: result.deals,
-                        focusOnly,
-                      })}
-                    />
-                  )}
+                  {shareUrl && <ShareButton url={shareUrl} title={generatedWith.recipe.name} />}
+                  <PdfButton
+                    getOptions={() => ({
+                      title: generatedWith.recipe.name,
+                      topicName: generatedWith.recipe.name,
+                      deals: result.deals,
+                      focusOnly,
+                      shareUrl: shareUrl ?? undefined,
+                    })}
+                  />
                   {savedSetId ? (
                     <span className="text-sm text-emerald-800">
                       {tr.save.saved}{' '}
@@ -304,7 +311,7 @@ export function GeneratePage() {
 
               <DealGrid deals={result.deals} focusOnly={focusOnly} onOpen={setSelected} />
 
-              {saveOpen && generatedWith && (
+              {saveOpen && (
                 <SaveSetDialog
                   defaultTitle={defaultSetTitle(generatedWith.recipe.name, new Date())}
                   onSave={handleSave}

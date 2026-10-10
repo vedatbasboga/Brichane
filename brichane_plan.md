@@ -92,6 +92,7 @@ Bu plan Claude Code ile **faz faz** uygulanmak üzere yazıldı. Her fazı ayrı
 ### 2.2 Dağıtım
 - Fisher–Yates karıştırma, `crypto.getRandomValues` ile (taraflılık olmadan).
 - **Tohumlu (seed) rastgele sayı üreteci** seçeneği: aynı tohum = aynı set. Hoca bir seti tekrar üretebilsin ya da öğrencilerle paylaşabilsin.
+  - *Güncelleme:* Kullanıcı kodu görmez/yazmaz; her üretim rastgele koddur. Paylaşım **bağlantı** ile: `/?v=1&konu=…&el=16&kod=…&iz=…` (özel dağılımda `tarif=` ile ayarlar da bağlantıda). Bağlantı açılınca aynı eller üretilir; konu tarifi sonradan değiştiyse (`iz`) ya da sürüm eskiyse uyarı gösterilir. "Bağlantılar bozulmasın" testi (`src/data/golden.test.ts`) sabit kodların ellerini korur.
 
 ### 2.3 El değerlendirme
 - HP (A=4, K=3, Q=2, J=1)

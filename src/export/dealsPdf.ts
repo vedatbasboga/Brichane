@@ -24,8 +24,9 @@ import { BOARDS_PER_PAGE, PAGE, boardCells, pageCount, pdfFileName, type Rect } 
 export interface DealsPdfOptions {
   title: string
   topicName: string
-  seed: string
   deals: DealView[]
+  /** Altbilgide tıklanabilir bağlantı (sığarsa); aynı seti yeniden açar. */
+  shareUrl?: string
   /** Sadece konu elleri çizilir (öğrenci kopyası). */
   focusOnly: boolean
   notes?: string
@@ -70,9 +71,9 @@ export async function downloadDealsPdf(options: DealsPdfOptions): Promise<void> 
     options.deals
       .slice(page * BOARDS_PER_PAGE, (page + 1) * BOARDS_PER_PAGE)
       .forEach((deal, i) => drawBoard(doc, deal, cells[i], options.focusOnly))
-    drawFooter(doc, page + 1, pages)
+    drawFooter(doc, page + 1, pages, options.shareUrl)
   }
-  doc.save(pdfFileName(options.title, options.seed))
+  doc.save(pdfFileName(options.title, isoDay(options.date ?? new Date())))
 }
 
 async function loadFont(url: string): Promise<string> {
@@ -100,7 +101,6 @@ function drawHeader(doc: jsPDF, options: DealsPdfOptions, firstPage: boolean) {
 
   const parts = [
     `${tr.pdf.topic}: ${options.topicName}`,
-    `${tr.pdf.seed}: ${options.seed}`,
     tr.sets.boards(options.deals.length),
     dateFormat.format(options.date ?? new Date()),
   ]
@@ -114,11 +114,23 @@ function drawHeader(doc: jsPDF, options: DealsPdfOptions, firstPage: boolean) {
   }
 }
 
-function drawFooter(doc: jsPDF, page: number, pages: number) {
+function drawFooter(doc: jsPDF, page: number, pages: number, shareUrl?: string) {
   const y = PAGE.h - PAGE.margin - 1
   setText(doc, COLOR.muted, 7.5)
-  doc.text(tr.appName, PAGE.margin, y)
-  doc.text(tr.pdf.page(page, pages), PAGE.w - PAGE.margin, y, { align: 'right' })
+  const pageLabel = tr.pdf.page(page, pages)
+  const available = PAGE.w - 2 * PAGE.margin - doc.getTextWidth(pageLabel) - 6
+  // Kısaltılmış bağlantı işe yaramaz; sığmıyorsa yalnızca uygulama adı yazılır.
+  if (shareUrl && doc.getTextWidth(shareUrl) <= available) {
+    doc.textWithLink(shareUrl, PAGE.margin, y, { url: shareUrl })
+  } else {
+    doc.text(tr.appName, PAGE.margin, y)
+  }
+  doc.text(pageLabel, PAGE.w - PAGE.margin, y, { align: 'right' })
+}
+
+function isoDay(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 }
 
 function drawBoard(doc: jsPDF, deal: DealView, cell: Rect, focusOnly: boolean) {
