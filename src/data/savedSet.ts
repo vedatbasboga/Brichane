@@ -45,6 +45,8 @@ export interface NewSetInput {
 export interface SavedSet extends NewSetInput {
   id: string
   archived: boolean
+  /** "Sil" ile işaretlendi; listede ve bağlantıda görünmez. */
+  deleted: boolean
   createdAt: Date | null
   updatedAt: Date | null
 }

@@ -1,7 +1,8 @@
 rules_version = '2';
 
-// Bu etapta Auth yok: herkes okuyabilir, yazmalar şemaya göre doğrulanır,
-// silme kapalı (arşivleme var). Sadece `sets` ve alt koleksiyonu `boardNotes`.
+// Bu etapta Auth yok: herkes okuyabilir, yazmalar şemaya göre doğrulanır.
+// Gerçek silme kapalı; "Sil" seti `deleted: true` ile işaretler (geri alınamaz, veri kurtarılabilir).
+// Sadece `sets` ve alt koleksiyonu `boardNotes`.
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -50,11 +51,19 @@ service cloud.firestore {
         && d.updatedAt == request.time;
     }
 
+    // "Sil": yalnızca deleted=true işaretlenebilir; geri alınamaz, başka alan değişmez.
+    function validSoftDelete(d, before) {
+      return d.diff(before).affectedKeys().hasOnly(['deleted', 'updatedAt'])
+        && d.deleted == true
+        && d.updatedAt == request.time;
+    }
+
     match /sets/{setId} {
       allow get, list: if true;
       allow create: if validNewSet(request.resource.data);
       allow update: if validSetUpdate(request.resource.data, resource.data)
-        || validDdFill(request.resource.data, resource.data);
+        || validDdFill(request.resource.data, resource.data)
+        || validSoftDelete(request.resource.data, resource.data);
       allow delete: if false;
 
       match /boardNotes/{board} {

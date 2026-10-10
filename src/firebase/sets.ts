@@ -44,6 +44,7 @@ function fromSnapshot(snap: DocumentSnapshot): SavedSet {
     dd: data.dd,
     par: data.par,
     archived: data.archived === true,
+    deleted: data.deleted === true,
     createdAt: toDate(data.createdAt),
     updatedAt: toDate(data.updatedAt),
   }
@@ -59,15 +60,23 @@ export async function createSet(input: NewSetInput): Promise<string> {
   return ref.id
 }
 
-/** En yeni önce. */
+/** En yeni önce; silinmiş setler hariç. */
 export async function listSets(): Promise<SavedSet[]> {
   const snap = await getDocs(query(setsCollection, orderBy('createdAt', 'desc'), limit(LIST_LIMIT)))
-  return snap.docs.map(fromSnapshot)
+  return snap.docs.map(fromSnapshot).filter((set) => !set.deleted)
 }
 
+/** Silinmiş set bulunamamış sayılır. */
 export async function getSet(id: string): Promise<SavedSet | null> {
   const snap = await getDoc(doc(db, SETS, id))
-  return snap.exists() ? fromSnapshot(snap) : null
+  if (!snap.exists()) return null
+  const set = fromSnapshot(snap)
+  return set.deleted ? null : set
+}
+
+/** "Sil": seti silindi olarak işaretler (Auth gelene kadar gerçek silme yok). */
+export async function deleteSet(id: string): Promise<void> {
+  await updateDoc(doc(db, SETS, id), { deleted: true, updatedAt: serverTimestamp() })
 }
 
 export async function updateSet(

@@ -115,6 +115,8 @@ export const tr = {
     copy: 'Kopyala',
     archive: 'Arşivle',
     unarchive: 'Arşivden çıkar',
+    delete: 'Sil',
+    confirmDelete: (title: string) => `“${title}” silinsin mi? Bu işlem geri alınamaz.`,
     copySuffix: ' (kopya)',
     copied: 'Kopya oluşturuldu.',
     notFound: 'Set bulunamadı.',

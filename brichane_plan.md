@@ -216,6 +216,7 @@ Auth olmadan Firestore herkese açık kalır; site adresini bilen herkes veriyi 
 1. **App Check** (reCAPTCHA v3) etkinleştir → sadece kendi sitenizden gelen istekler kabul edilir, script ile toplu silme engellenir.
 2. Güvenlik kurallarında **şema doğrulaması**: sadece `sets` koleksiyonuna (ve alt koleksiyonu `boardNotes`'a), beklenen alanlarla yazmaya izin ver; diğer her şey kapalı.
 3. **Silme kapalı** olsun; arayüzde "sil" yerine `archived: true` işaretlensin.
+   - *Güncelleme:* Setlerim'de "Sil" var; seti `deleted: true` ile işaretler (kullanıcıya silinmiş görünür, geri alınamaz, veri yönetici tarafından kurtarılabilir). Gerçek silme Auth ile (Faz 9) gelecek.
 4. Firestore'un **günlük otomatik yedeği** (point-in-time recovery veya planlı export) açılsın.
 5. Site adresi paylaşılmasın.
 

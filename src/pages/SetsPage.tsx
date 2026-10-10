@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import type { SavedSet } from '../data/savedSet'
-import { copySet, listSets, loadBoardNotes, updateSet } from '../firebase/sets'
+import { copySet, deleteSet, listSets, loadBoardNotes, updateSet } from '../firebase/sets'
 import { tr } from '../i18n/tr'
 
 type LoadState =
@@ -43,6 +43,24 @@ export default function SetsPage() {
                 s.id === set.id ? { ...s, archived: !s.archived } : s,
               ),
             }
+          : current,
+      )
+    } catch (err) {
+      setActionError(errorMessage(err))
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  async function remove(set: SavedSet) {
+    if (!window.confirm(tr.sets.confirmDelete(set.title))) return
+    setBusyId(set.id)
+    setActionError(null)
+    try {
+      await deleteSet(set.id)
+      setState((current) =>
+        current.status === 'ready'
+          ? { ...current, sets: current.sets.filter((s) => s.id !== set.id) }
           : current,
       )
     } catch (err) {
@@ -144,6 +162,14 @@ export default function SetsPage() {
                   className="rounded-md px-2.5 py-1 text-sm font-medium text-slate-600 hover:bg-slate-100 disabled:opacity-50"
                 >
                   {set.archived ? tr.sets.unarchive : tr.sets.archive}
+                </button>
+                <button
+                  type="button"
+                  disabled={busyId === set.id}
+                  onClick={() => remove(set)}
+                  className="rounded-md px-2.5 py-1 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
+                >
+                  {tr.sets.delete}
                 </button>
               </div>
             </li>

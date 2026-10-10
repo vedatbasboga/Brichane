@@ -55,7 +55,7 @@ Ağır işler (el üretimi, DDS) Web Worker'da. Veri Firestore'da, yayın Fireba
 ## Firebase (`src/firebase/`)
 
 - Proje kimliği `brichane-0` (`.firebaserc`), Firestore `europe-west3`. Ayarlar `.env` (`VITE_FIREBASE_*`, örnek: `.env.example`).
-- Firestore'da yalnızca `sets/{id}` (+ `boardNotes/{board}`). Kurallar `firestore.rules`: okuma açık, oluşturmada şema doğrulama, güncellemede yalnızca `title/notes/archived`, **silme kapalı**. Kural değişince `npm run deploy:rules`.
+- Firestore'da yalnızca `sets/{id}` (+ `boardNotes/{board}`). Kurallar `firestore.rules`: okuma açık, oluşturmada şema doğrulama, güncellemede yalnızca `title/notes/archived`, **gerçek silme kapalı**: "Sil" `deleted: true` işaretler (geri alınamaz; `listSets`/`getSet` silinmişleri gizler). Auth gelince gerçek silmeye dönecek. Kural değişince `npm run deploy:rules`.
 - Çift kukla sonuçları sette `dd` (board başına 20 haneli PBN DoubleDummyTricks: K D G B × NT ♠ ♥ ♦ ♣) ve `par` ({score, contracts}) olarak; kurallar yalnızca henüz yoksa bir kez yazmaya izin verir.
 - Firebase yalnızca set sayfalarında ve "Kaydet"te dinamik yüklenir (ana sayfa paketi küçük kalsın).
 - App Check: `VITE_RECAPTCHA_SITE_KEY` tanımlıysa açılır.
