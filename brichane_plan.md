@@ -12,6 +12,11 @@ Bu plan Claude Code ile **faz faz** uygulanmak üzere yazıldı. Her fazı ayrı
 - [x] Faz 3 — Arayüz: üret ve incele
 - [x] Faz 4 — Konu kütüphanesi (sabit liste + özel dağılım)
 - [ ] Faz 5 — Firebase bağlantısı (Auth olmadan)
+  - [x] Proje `brichane-0`, Firestore `europe-west3`, güvenlik kuralları (şema doğrulama, silme kapalı) — canlıda test edildi
+  - [x] Kaydet + Setlerim (liste, aç, başlık/not, board notu, kopyala, arşivle)
+  - [x] Yayın: https://brichane-0.web.app (`npm run deploy`, önizleme: `npm run deploy:preview`)
+  - [ ] App Check (reCAPTCHA v3) — konsolda anahtar oluşturulması bekleniyor
+  - [ ] Günlük yedek — Firestore yedekleri Blaze (faturalı) plan istiyor; karar bekleniyor
 - [ ] Faz 6 — Çift kukla analizi (DDS)
 - [ ] Faz 7 — Dışa aktarma ve baskı
 - [ ] Faz 8 — Test ve iyileştirme (hoca ile)

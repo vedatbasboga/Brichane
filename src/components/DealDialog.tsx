@@ -1,19 +1,29 @@
-import { useEffect, useRef } from 'react'
-import { SEATS, controls, hcp, losingTrickCount, shapePattern, type GeneratedDeal } from '../engine'
+import { useEffect, useRef, type ReactNode } from 'react'
+import type { DealView } from '../data/savedSet'
+import { SEATS, controls, hcp, losingTrickCount, shapePattern } from '../engine'
 import { tr } from '../i18n/tr'
 import { DealCard } from './DealCard'
 import { dealCaption } from './format'
 
 interface DealDialogProps {
-  deals: GeneratedDeal[]
+  deals: DealView[]
   index: number | null
   focusOnly: boolean
   onClose: () => void
   onNavigate: (index: number) => void
+  /** Tablonun altına eklenecek içerik (örn. board notu). */
+  renderExtra?: (deal: DealView) => ReactNode
 }
 
 /** Seçili board'un büyük görünümü; ← → ile boardlar arasında gezilir. */
-export function DealDialog({ deals, index, focusOnly, onClose, onNavigate }: DealDialogProps) {
+export function DealDialog({
+  deals,
+  index,
+  focusOnly,
+  onClose,
+  onNavigate,
+  renderExtra,
+}: DealDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const deal = index === null ? null : deals[index]
 
@@ -29,6 +39,9 @@ export function DealDialog({ deals, index, focusOnly, onClose, onNavigate }: Dea
 
   function handleKeyDown(event: React.KeyboardEvent) {
     if (index === null) return
+    // Yazı alanında oklar imleci taşır, board değiştirmez.
+    const target = event.target as HTMLElement
+    if (target.tagName === 'TEXTAREA' || target.tagName === 'INPUT') return
     if (event.key === 'ArrowLeft' && hasPrev) onNavigate(index - 1)
     if (event.key === 'ArrowRight' && hasNext) onNavigate(index + 1)
   }
@@ -84,6 +97,8 @@ export function DealDialog({ deals, index, focusOnly, onClose, onNavigate }: Dea
               </tbody>
             </table>
           )}
+
+          {renderExtra?.(deal)}
 
           <div className="flex justify-between gap-2">
             <button

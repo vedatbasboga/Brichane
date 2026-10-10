@@ -1,10 +1,12 @@
 import { useState, type FormEvent } from 'react'
+import { Link } from 'react-router'
 import { CustomTopicDialog } from '../components/CustomTopicDialog'
-import { DealCard } from '../components/DealCard'
 import { DealDialog } from '../components/DealDialog'
-import { dealCaption } from '../components/format'
+import { DealGrid } from '../components/DealGrid'
+import { SaveSetDialog } from '../components/SaveSetDialog'
 import { TopicSelect } from '../components/TopicSelect'
 import { CUSTOM_TOPIC_ID, DEFAULT_TOPICS } from '../data/topics'
+import { buildNewSet, defaultSetTitle } from '../data/savedSet'
 import { draftToRecipe, recipeToDraft, type TopicDraft } from '../data/topicDraft'
 import type { Recipe } from '../engine'
 import { useDealGenerator } from '../hooks/useDealGenerator'
@@ -25,6 +27,12 @@ export function GeneratePage() {
   const [focusOnly, setFocusOnly] = useState(false)
   const [selected, setSelected] = useState<number | null>(null)
   const [copied, setCopied] = useState(false)
+  /** Son üretimin tarifi; kayıt bununla yapılır (sonradan konu değişse bile). */
+  const [generatedWith, setGeneratedWith] = useState<{ recipe: Recipe; topicId: string } | null>(
+    null,
+  )
+  const [saveOpen, setSaveOpen] = useState(false)
+  const [savedSetId, setSavedSetId] = useState<string | null>(null)
   const { state, generate, cancel } = useDealGenerator()
 
   const preset = topics.find((t) => t.id === presetId) ?? topics[0]
@@ -39,7 +47,18 @@ export function GeneratePage() {
     event.preventDefault()
     if (!countValid) return
     setSelected(null)
+    setSavedSetId(null)
+    setGeneratedWith({ recipe, topicId: isCustom ? CUSTOM_TOPIC_ID : preset.id })
     generate({ recipe, count, seed })
+  }
+
+  async function handleSave(title: string, notes: string) {
+    if (!result || !generatedWith) return
+    // Firebase yalnızca kaydederken yüklenir; ana sayfa hafif kalır.
+    const { createSet } = await import('../firebase/sets')
+    const id = await createSet(buildNewSet({ title, notes, ...generatedWith, result }))
+    setSavedSetId(id)
+    setSaveOpen(false)
   }
 
   function handleTopicChange(id: string) {
@@ -239,42 +258,47 @@ export function GeneratePage() {
                     {copied ? tr.generate.copied : tr.generate.copySeed}
                   </button>
                 </div>
-                <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-700">
-                  <input
-                    type="checkbox"
-                    checked={focusOnly}
-                    onChange={(event) => setFocusOnly(event.target.checked)}
-                    className="size-4 accent-emerald-700"
-                  />
-                  {tr.generate.focusOnly}
-                </label>
+                <div className="flex flex-wrap items-center gap-4">
+                  <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={focusOnly}
+                      onChange={(event) => setFocusOnly(event.target.checked)}
+                      className="size-4 accent-emerald-700"
+                    />
+                    {tr.generate.focusOnly}
+                  </label>
+                  {savedSetId ? (
+                    <span className="text-sm text-emerald-800">
+                      {tr.save.saved}{' '}
+                      <Link
+                        to={`/sets/${savedSetId}`}
+                        className="font-semibold underline hover:text-emerald-950"
+                      >
+                        {tr.save.open}
+                      </Link>
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setSaveOpen(true)}
+                      className="rounded-md bg-emerald-700 px-4 py-1.5 text-sm font-semibold text-white hover:bg-emerald-800"
+                    >
+                      {tr.save.button}
+                    </button>
+                  )}
+                </div>
               </div>
 
-              <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
-                {result.deals.map((deal, index) => (
-                  <li key={deal.board}>
-                    <article
-                      onClick={() => setSelected(index)}
-                      className="flex h-full cursor-pointer flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition hover:border-emerald-400 hover:shadow"
-                    >
-                      <header className="flex items-center justify-between gap-2">
-                        <h3 className="text-xs font-medium text-slate-500">{dealCaption(deal)}</h3>
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation()
-                            setSelected(index)
-                          }}
-                          className="rounded px-2 py-0.5 text-xs font-medium text-emerald-700 hover:bg-emerald-50"
-                        >
-                          {tr.board.open}
-                        </button>
-                      </header>
-                      <DealCard deal={deal} focusOnly={focusOnly} />
-                    </article>
-                  </li>
-                ))}
-              </ul>
+              <DealGrid deals={result.deals} focusOnly={focusOnly} onOpen={setSelected} />
+
+              {saveOpen && generatedWith && (
+                <SaveSetDialog
+                  defaultTitle={defaultSetTitle(generatedWith.recipe.name, new Date())}
+                  onSave={handleSave}
+                  onCancel={() => setSaveOpen(false)}
+                />
+              )}
 
               <DealDialog
                 deals={result.deals}

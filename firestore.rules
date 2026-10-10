@@ -1,0 +1,59 @@
+rules_version = '2';
+
+// Bu etapta Auth yok: herkes okuyabilir, yazmalar şemaya göre doğrulanır,
+// silme kapalı (arşivleme var). Sadece `sets` ve alt koleksiyonu `boardNotes`.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isString(value, min, max) {
+      return value is string && value.size() >= min && value.size() <= max;
+    }
+
+    function validNewSet(d) {
+      let keys = ['title', 'topicId', 'topicName', 'recipe', 'seed', 'count', 'deals',
+                  'notes', 'archived', 'createdAt', 'updatedAt'];
+      return d.keys().hasOnly(keys) && d.keys().hasAll(keys)
+        && isString(d.title, 1, 200)
+        && isString(d.topicId, 1, 100)
+        && isString(d.topicName, 1, 200)
+        && d.recipe is map
+        && isString(d.seed, 1, 200)
+        && d.count is int && d.count >= 1 && d.count <= 128
+        && d.deals is list && d.deals.size() == d.count
+        && isString(d.notes, 0, 20000)
+        && d.archived == false
+        && d.createdAt == request.time
+        && d.updatedAt == request.time;
+    }
+
+    function validSetUpdate(d, before) {
+      return d.diff(before).affectedKeys().hasOnly(['title', 'notes', 'archived', 'updatedAt'])
+        && isString(d.title, 1, 200)
+        && isString(d.notes, 0, 20000)
+        && d.archived is bool
+        && d.updatedAt == request.time;
+    }
+
+    match /sets/{setId} {
+      allow get, list: if true;
+      allow create: if validNewSet(request.resource.data);
+      allow update: if validSetUpdate(request.resource.data, resource.data);
+      allow delete: if false;
+
+      match /boardNotes/{board} {
+        allow get, list: if true;
+        allow create, update: if board.matches('^[0-9]{1,3}$')
+          && exists(/databases/$(database)/documents/sets/$(setId))
+          && request.resource.data.keys().hasOnly(['text', 'updatedAt'])
+          && isString(request.resource.data.text, 0, 5000)
+          && request.resource.data.updatedAt == request.time;
+        allow delete: if false;
+      }
+    }
+
+    // Diğer her şey kapalı.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

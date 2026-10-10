@@ -15,6 +15,9 @@ Ağır işler (el üretimi, DDS) Web Worker'da. Veri Firestore'da, yayın Fireba
 - `npm run lint` — ESLint
 - `npm run format` — Prettier
 - `npm run build` — tip kontrolü + üretim derlemesi (`dist/`)
+- `npm run deploy` — derle + Firebase Hosting'e yayınla (https://brichane-0.web.app)
+- `npm run deploy:preview` — 7 günlük önizleme kanalı (canlıyı bozmadan link paylaşmak için)
+- `npm run deploy:rules` — Firestore kuralları ve indeksleri
 
 ## Kod kuralları
 
@@ -42,6 +45,15 @@ Ağır işler (el üretimi, DDS) Web Worker'da. Veri Firestore'da, yayın Fireba
 - `topicDraft.ts`: form modeli (tam aralık = koşul yok) ↔ `Recipe` dönüşümü ve doğrulama.
 - Bir sete kaydederken tarifin kopyası da saklanmalı (özel dağılımın kalıcı bir kaydı yok).
 
+## Firebase (`src/firebase/`)
+
+- Proje kimliği `brichane-0` (`.firebaserc`), Firestore `europe-west3`. Ayarlar `.env` (`VITE_FIREBASE_*`, örnek: `.env.example`).
+- Firestore'da yalnızca `sets/{id}` (+ `boardNotes/{board}`). Kurallar `firestore.rules`: okuma açık, oluşturmada şema doğrulama, güncellemede yalnızca `title/notes/archived`, **silme kapalı**. Kural değişince `npm run deploy:rules`.
+- Faz 6'da DD sonuçları sete yazılacaksa kurallardaki güncelleme izin listesi genişletilmeli.
+- Firebase yalnızca set sayfalarında ve "Kaydet"te dinamik yüklenir (ana sayfa paketi küçük kalsın).
+- App Check: `VITE_RECAPTCHA_SITE_KEY` tanımlıysa açılır.
+- Test verisini temizlemek için (kurallar silmeye izin vermez): `firebase firestore:delete sets/<id> --recursive --force`.
+
 ## Klasör yapısı
 
 ```
@@ -49,9 +61,9 @@ src/
   engine/        # saf briç mantığı (kart, el, kısıt, üretici, PBN)
   workers/       # dealWorker.ts, ddsWorker.ts
   data/          # varsayılan konu tarifleri
-  firebase/      # firebase init + firestore erişim katmanı
+  firebase/      # app.ts (init, App Check), sets.ts (Firestore erişimi)
   components/    # HandView, DealCard, DealDialog, TopicSelect, CustomTopicDialog, topicForm/
   hooks/         # useDealGenerator (Worker yönetimi)
-  pages/         # GeneratePage (Sets, Print sonra)
+  pages/         # GeneratePage, SetsPage, SetDetailPage (Print sonra)
   i18n/tr.ts     # arayüz metinleri
 ```

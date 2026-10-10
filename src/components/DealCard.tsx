@@ -1,9 +1,10 @@
-import type { GeneratedDeal, Seat } from '../engine'
+import type { DealView } from '../data/savedSet'
+import type { Seat } from '../engine'
 import { CompassBox } from './CompassBox'
 import { HandView } from './HandView'
 
 interface DealCardProps {
-  deal: GeneratedDeal
+  deal: DealView
   focusOnly: boolean
   size?: 'sm' | 'lg'
 }
