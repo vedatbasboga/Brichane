@@ -75,6 +75,15 @@ export const tr = {
     error: 'Kaydedilemedi:',
   },
 
+  pdf: {
+    download: 'PDF indir',
+    preparing: 'Hazırlanıyor…',
+    error: 'PDF oluşturulamadı:',
+    topic: 'Konu',
+    seed: 'Tohum',
+    page: (page: number, pages: number) => `Sayfa ${page}/${pages}`,
+  },
+
   sets: {
     title: 'Setlerim',
     loading: 'Setler yükleniyor…',

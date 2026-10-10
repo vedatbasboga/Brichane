@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { CustomTopicDialog } from '../components/CustomTopicDialog'
 import { DealDialog } from '../components/DealDialog'
 import { DealGrid } from '../components/DealGrid'
+import { PdfButton } from '../components/PdfButton'
 import { SaveSetDialog } from '../components/SaveSetDialog'
 import { TopicSelect } from '../components/TopicSelect'
 import { CUSTOM_TOPIC_ID, DEFAULT_TOPICS } from '../data/topics'
@@ -268,6 +269,17 @@ export function GeneratePage() {
                     />
                     {tr.generate.focusOnly}
                   </label>
+                  {generatedWith && (
+                    <PdfButton
+                      getOptions={() => ({
+                        title: generatedWith.recipe.name,
+                        topicName: generatedWith.recipe.name,
+                        seed: result.seed,
+                        deals: result.deals,
+                        focusOnly,
+                      })}
+                    />
+                  )}
                   {savedSetId ? (
                     <span className="text-sm text-emerald-800">
                       {tr.save.saved}{' '}

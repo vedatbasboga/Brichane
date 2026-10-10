@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { DealDialog } from '../components/DealDialog'
 import { DealGrid } from '../components/DealGrid'
+import { PdfButton } from '../components/PdfButton'
 import {
   MAX_BOARD_NOTE_LENGTH,
   MAX_NOTES_LENGTH,
@@ -182,15 +183,28 @@ function SetDetail({ initialSet, initialNotes }: SetDetailProps) {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <span className="font-semibold text-slate-900">{tr.sets.boards(set.count)}</span>
-        <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-700">
-          <input
-            type="checkbox"
-            checked={focusOnly}
-            onChange={(event) => setFocusOnly(event.target.checked)}
-            className="size-4 accent-emerald-700"
+        <div className="flex flex-wrap items-center gap-4">
+          <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-700">
+            <input
+              type="checkbox"
+              checked={focusOnly}
+              onChange={(event) => setFocusOnly(event.target.checked)}
+              className="size-4 accent-emerald-700"
+            />
+            {tr.generate.focusOnly}
+          </label>
+          <PdfButton
+            getOptions={() => ({
+              title: set.title,
+              topicName: set.topicName,
+              seed: set.seed,
+              deals,
+              focusOnly,
+              notes: set.notes,
+              date: set.createdAt,
+            })}
           />
-          {tr.generate.focusOnly}
-        </label>
+        </div>
       </div>
 
       <DealGrid
