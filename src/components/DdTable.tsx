@@ -1,4 +1,12 @@
-import { STRAINS, STRAIN_SYMBOLS, type DdResult, type Seat, type Strain } from '../engine'
+import {
+  STRAINS,
+  STRAIN_SYMBOLS,
+  contractLevel,
+  parCells,
+  type DdResult,
+  type Seat,
+  type Strain,
+} from '../engine'
 import { tr } from '../i18n/tr'
 import { formatPar } from './ddFormat'
 
@@ -16,7 +24,10 @@ interface DdTableProps {
   size?: 'sm' | 'lg'
 }
 
-/** Löve tablosu (♣ ♦ ♥ ♠ NT × K G D B) ve par; 7+ löve (kontrat çıkar) koyu yazılır. */
+/**
+ * Her deklarenin her kozda yapabileceği en yüksek kontrat seviyesi (– : çıkmaz);
+ * par kontratın hücresi sarı. Altında par satırı.
+ */
 export function DdTable({ result, size = 'sm' }: DdTableProps) {
   const large = size === 'lg'
   if (!result) {
@@ -26,12 +37,18 @@ export function DdTable({ result, size = 'sm' }: DdTableProps) {
       </p>
     )
   }
+  const par = parCells(result.par)
+  const cell = large ? 'h-7 text-sm' : 'h-5 text-[11px]'
+
   return (
     <div className={large ? 'text-sm' : 'text-[11px] leading-tight'}>
-      <table className="w-full table-fixed text-center tabular-nums" aria-label={tr.dd.title}>
+      <table
+        className={`w-full table-fixed border-separate text-center tabular-nums ${large ? 'border-spacing-1' : 'border-spacing-0.5'}`}
+        aria-label={tr.dd.title}
+      >
         <thead>
           <tr>
-            <th className="w-6" />
+            <th className={large ? 'w-8' : 'w-5'} />
             {STRAINS.map((strain) => (
               <th key={strain} className={`font-semibold ${STRAIN_COLOR[strain]}`}>
                 {STRAIN_SYMBOLS[strain]}
@@ -42,17 +59,22 @@ export function DdTable({ result, size = 'sm' }: DdTableProps) {
         <tbody>
           {ROWS.map((seat) => (
             <tr key={seat}>
-              <th className="text-left font-medium text-slate-500" title={tr.seatNames[seat]}>
+              <th className="text-left font-semibold text-slate-600" title={tr.seatNames[seat]}>
                 {tr.seats[seat]}
               </th>
               {STRAINS.map((strain) => {
-                const tricks = result.tricks[seat][strain]
+                const level = contractLevel(result.tricks[seat][strain])
+                const isPar = par.has(`${seat}${strain}`)
                 return (
                   <td
                     key={strain}
-                    className={tricks >= 7 ? 'font-semibold text-slate-900' : 'text-slate-400'}
+                    className={`${cell} rounded border font-semibold ${
+                      isPar
+                        ? 'border-yellow-500 bg-yellow-300 text-slate-900'
+                        : 'border-amber-200 bg-amber-50 text-slate-800'
+                    }`}
                   >
-                    {tricks}
+                    {level ?? '–'}
                   </td>
                 )
               })}

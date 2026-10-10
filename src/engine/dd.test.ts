@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { parseParContract, tricksFromDds, tricksFromHex, tricksToHex } from './dd'
+import {
+  contractLevel,
+  parCells,
+  parseParContract,
+  tricksFromDds,
+  tricksFromHex,
+  tricksToHex,
+} from './dd'
 
 // K bütün ♠, D bütün ♥, G bütün ♦, B bütün ♣ — DDS'in gerçek çıktısı.
 const ALL_SUITS_TABLE = [
@@ -59,5 +66,28 @@ describe('parseParContract', () => {
   it('returns null for unknown formats', () => {
     expect(parseParContract('pass')).toBeNull()
     expect(parseParContract('8S-NS')).toBeNull()
+  })
+})
+
+describe('contractLevel', () => {
+  it('converts tricks to the highest makeable level', () => {
+    expect(contractLevel(13)).toBe(7)
+    expect(contractLevel(10)).toBe(4)
+    expect(contractLevel(7)).toBe(1)
+    expect(contractLevel(6)).toBeNull()
+    expect(contractLevel(0)).toBeNull()
+  })
+})
+
+describe('parCells', () => {
+  it('marks the declarer and strain of each par contract', () => {
+    expect([...parCells({ score: 420, contracts: ['4S-NS', '4H-NS'] })].sort()).toEqual([
+      'NH',
+      'NS',
+      'SH',
+      'SS',
+    ])
+    expect([...parCells({ score: -100, contracts: ['5D*-E-1'] })]).toEqual(['ED'])
+    expect(parCells({ score: 0, contracts: [] }).size).toBe(0)
   })
 })

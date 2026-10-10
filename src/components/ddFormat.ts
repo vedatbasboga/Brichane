@@ -7,12 +7,16 @@ function seatsLabel(seats: readonly Seat[]): string {
   return seats.map((seat) => tr.seats[seat]).join('')
 }
 
-/** "5D*-EW-3" → "5♦x DB −3"; tanınmayan biçim olduğu gibi döner. */
+/**
+ * "5D*-EW-3" → "5♦x DB −3". DDS yapılan kontratı "en düşük seviye + fazla löve" olarak verir
+ * ("1S-NS+2"); aynı skoru veren seviyeye çevrilir ("3♠ KG"). Tanınmayan biçim olduğu gibi döner.
+ */
 export function formatParContract(raw: string): string {
   const c = parseParContract(raw)
   if (!c) return raw
-  const result = c.result === 0 ? '' : ` ${c.result > 0 ? '+' : '−'}${Math.abs(c.result)}`
-  return `${c.level}${STRAIN_SYMBOLS[c.strain]}${c.doubled ? 'x' : ''} ${seatsLabel(c.seats)}${result}`
+  const level = c.result > 0 ? c.level + c.result : c.level
+  const down = c.result < 0 ? ` −${-c.result}` : ''
+  return `${level}${STRAIN_SYMBOLS[c.strain]}${c.doubled ? 'x' : ''} ${seatsLabel(c.seats)}${down}`
 }
 
 /** Skoru kazanan taraf açısından yazar: 420 → "KG +420", −620 → "DB +620". */

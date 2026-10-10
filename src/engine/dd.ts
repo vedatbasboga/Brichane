@@ -93,3 +93,18 @@ export function parseParContract(raw: string): ParContract | null {
     result: result ? Number(result) : 0,
   }
 }
+
+/** Löveden kontrat seviyesi: 10 löve → 4; 7'den az löve → null (kontrat çıkmaz). */
+export function contractLevel(tricks: number): number | null {
+  return tricks >= 7 ? tricks - 6 : null
+}
+
+/** Par kontratın oynandığı hücreler ("N" + "S" gibi deklare + koz anahtarları). */
+export function parCells(par: DdPar): Set<`${Seat}${Strain}`> {
+  const cells = new Set<`${Seat}${Strain}`>()
+  for (const raw of par.contracts) {
+    const contract = parseParContract(raw)
+    if (contract) for (const seat of contract.seats) cells.add(`${seat}${contract.strain}`)
+  }
+  return cells
+}

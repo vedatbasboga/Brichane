@@ -11,10 +11,12 @@ import {
   STRAINS,
   STRAIN_SYMBOLS,
   SUITS,
+  contractLevel,
   SUIT_SYMBOLS,
   handBySuit,
   hcp,
   isVulnerable,
+  parCells,
   rankLabel,
   type DdResult,
   type Hand,
@@ -43,7 +45,20 @@ export interface DealsPdfOptions {
 type Rgb = [number, number, number]
 
 const FONT = 'DejaVu'
-const COLOR: Record<'text' | 'muted' | 'red' | 'hcp' | 'border' | 'box' | 'white', Rgb> = {
+const COLOR: Record<
+  | 'text'
+  | 'muted'
+  | 'red'
+  | 'hcp'
+  | 'border'
+  | 'box'
+  | 'white'
+  | 'cellFill'
+  | 'cellBorder'
+  | 'parFill'
+  | 'parBorder',
+  Rgb
+> = {
   text: [15, 23, 42],
   muted: [100, 116, 139],
   red: [220, 38, 38],
@@ -51,6 +66,10 @@ const COLOR: Record<'text' | 'muted' | 'red' | 'hcp' | 'border' | 'box' | 'white
   border: [203, 213, 225],
   box: [241, 245, 249],
   white: [255, 255, 255],
+  cellFill: [255, 251, 235],
+  cellBorder: [253, 230, 138],
+  parFill: [253, 224, 71],
+  parBorder: [234, 179, 8],
 }
 const SUIT_COLOR: Record<Suit, Rgb> = { S: COLOR.text, H: COLOR.red, D: COLOR.red, C: COLOR.text }
 const STRAIN_COLOR: Record<Strain, Rgb> = { ...SUIT_COLOR, N: COLOR.text }
@@ -189,6 +208,7 @@ function drawDdTable(doc: jsPDF, dd: DdResult, x: number, y: number, w: number) 
   const labelW = 3.5
   const cellW = (w - labelW) / STRAINS.length
   const rowH = 3.1
+  const par = parCells(dd.par)
   STRAINS.forEach((strain, i) => {
     setText(doc, STRAIN_COLOR[strain], 6.5, 'bold')
     doc.text(STRAIN_SYMBOLS[strain], x + labelW + (i + 0.5) * cellW, y + 3, { align: 'center' })
@@ -198,9 +218,24 @@ function drawDdTable(doc: jsPDF, dd: DdResult, x: number, y: number, w: number) 
     setText(doc, COLOR.muted, 6.5, 'bold')
     doc.text(tr.seats[seat], x, baseline)
     STRAINS.forEach((strain, i) => {
-      const tricks = dd.tricks[seat][strain]
-      setText(doc, tricks >= 7 ? COLOR.text : COLOR.muted, 6.5, tricks >= 7 ? 'bold' : 'normal')
-      doc.text(String(tricks), x + labelW + (i + 0.5) * cellW, baseline, { align: 'center' })
+      const isPar = par.has(`${seat}${strain}`)
+      doc.setFillColor(...(isPar ? COLOR.parFill : COLOR.cellFill))
+      doc.setDrawColor(...(isPar ? COLOR.parBorder : COLOR.cellBorder))
+      doc.setLineWidth(0.15)
+      doc.roundedRect(
+        x + labelW + i * cellW + 0.25,
+        baseline - 2.3,
+        cellW - 0.5,
+        rowH - 0.35,
+        0.4,
+        0.4,
+        'FD',
+      )
+      const level = contractLevel(dd.tricks[seat][strain])
+      setText(doc, COLOR.text, 6.5, 'bold')
+      doc.text(level === null ? '–' : String(level), x + labelW + (i + 0.5) * cellW, baseline, {
+        align: 'center',
+      })
     })
   })
 }

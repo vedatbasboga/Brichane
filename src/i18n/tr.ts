@@ -82,7 +82,7 @@ export const tr = {
 
   dd: {
     title: 'Çift kukla analizi',
-    help: 'Dört el açık ve hatasız oyunla her deklarenin her kozda alacağı löve.',
+    help: 'Dört el açık ve hatasız oyunla her deklarenin her kozda yapabileceği en yüksek kontrat (–: kontrat çıkmaz). Sarı: par kontrat.',
     computing: 'Çift kukla hesaplanıyor…',
     progress: (done: number, total: number) => `Çift kukla: ${done}/${total}`,
     par: 'Par',

@@ -4,9 +4,10 @@ import { formatPar, formatParContract, formatParScore } from './ddFormat'
 describe('par formatting', () => {
   it.each([
     ['4S-NS', '4♠ KG'],
-    ['3N-E+1', '3NT D +1'],
+    ['3N-E+1', '4NT D'],
     ['5D*-EW-3', '5♦x DB −3'],
-    ['1H-S+2', '1♥ G +2'],
+    ['1H-S+2', '3♥ G'],
+    ['1S-NS+2', '3♠ KG'],
     ['7C*-W-6', '7♣x B −6'],
   ])('%s → %s', (raw, text) => {
     expect(formatParContract(raw)).toBe(text)
