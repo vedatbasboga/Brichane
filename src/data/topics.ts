@@ -3,6 +3,9 @@
 
 import type { Recipe, SeatConstraint } from '../engine'
 
+/** Konu seçicideki "Özel dağılım…" seçeneği. */
+export const CUSTOM_TOPIC_ID = 'custom'
+
 const ONE_NT_OPENER: SeatConstraint = {
   hcp: [15, 17],
   shape: 'balanced',
@@ -68,7 +71,7 @@ export const DEFAULT_TOPICS: Recipe[] = [
     seats: {
       S: ONE_NT_OPENER,
       N: {
-        hcp: [8, 40],
+        hcp: [8, 37],
         suits: { S: [0, 4], H: [0, 4] },
         anySuit: { suits: ['S', 'H'], length: [4, 4] },
       },

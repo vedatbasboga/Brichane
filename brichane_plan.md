@@ -10,7 +10,7 @@ Bu plan Claude Code ile **faz faz** uygulanmak üzere yazıldı. Her fazı ayrı
 - [x] Faz 1 — Proje iskeleti
 - [x] Faz 2 — Briç motoru (çekirdek)
 - [x] Faz 3 — Arayüz: üret ve incele
-- [x] Faz 4 — Konu kütüphanesi
+- [x] Faz 4 — Konu kütüphanesi (sabit liste + özel dağılım)
 - [ ] Faz 5 — Firebase bağlantısı (Auth olmadan)
 - [ ] Faz 6 — Çift kukla analizi (DDS)
 - [ ] Faz 7 — Dışa aktarma ve baskı
@@ -43,7 +43,7 @@ Bu plan Claude Code ile **faz faz** uygulanmak üzere yazıldı. Her fazı ayrı
 | Test | Vitest | Motor fonksiyonları için birim testleri |
 | Ağır işler | Web Worker | El üretimi ve DDS arayüzü kilitlemesin |
 | Çift kukla | DDS (WebAssembly) | Sektör standardı çözücü |
-| Veri | Firestore | Konular, setler, notlar |
+| Veri | Firestore | Setler, notlar (konular kodda sabit) |
 | Yayın | Firebase Hosting | Ücretsiz, tek komutla deploy |
 
 ### Kod kuralları
@@ -165,13 +165,14 @@ Aralıklar **hocanın sistemine göre** düzeltilecek; aşağıdakiler başlang�
 | Şlem | Blackwood / şlem | NS toplam 33+ HP, fit |
 | Oyun | Sanzatu oyun planı | NS 25–27 HP, iki el dengeli |
 
-### Sayfa: **Konular**
-- Liste + yeni konu ekle / düzenle / kopyala
-- Form tabanlı tarif editörü (JSON yazmaya gerek yok): her koltuk için HP kaydırıcısı, dağılım seçimi, renk uzunlukları
-- "Dene" butonu: tarifi kaydetmeden 4 el üretip gösterir, gözlenen olasılığı yazar
-- Konular Firestore'da tutulur; varsayılanlar ilk açılışta yüklenir *(Faz 4'te tarayıcıda (localStorage) tutuluyor; Faz 5'te aynı arayüzle Firestore'a geçecek)*
+### ~~Sayfa: **Konular**~~ → **Özel dağılım** (geri bildirimle değişti)
+Karar: kullanıcılar konu yönetmez; konu listesi kodda sabit (`src/data/topics.ts`), yeni konuları geliştirici ekler. Böylece yönetimi kolay kalır.
+- El Atölyesi'ndeki konu seçicinin en altında **"Özel dağılım…"** seçeneği
+- Seçilince form tabanlı tarif penceresi açılır (JSON yok): dağıtıcı, konu elinin yeri (dengeli/sabit), konu rengi; her koltuk için HP, dağılım, renk uzunlukları, "şu renklerden en az biri", kontrol, LTC, hariç tut; ortaklık HP ve fit
+- Seçili hazır konunun ayarlarıyla başlar; "Uygula" ile o oturumda o koşullarla üretilir, **kaydedilmez**
+- Firestore'da `topics` koleksiyonu yok
 
-**Bitti sayılır:** Hoca kod bilmeden yeni bir konu tanımlayıp üretebiliyor.
+**Bitti sayılır:** Kullanıcı kod bilmeden anlık özel bir dağılımla el üretebiliyor; hazır konu listesi sabit.
 
 ---
 
@@ -185,11 +186,8 @@ Aralıklar **hocanın sistemine göre** düzeltilecek; aşağıdakiler başlang�
 
 ### 5.2 Veri modeli
 ```
-topics/{topicId}
-  name, category, description, recipe (map), isDefault, createdAt, updatedAt
-
 sets/{setId}
-  title, topicId, seed, count, createdAt
+  title, topicId ('custom' = özel dağılım), recipe (map, tarifin o anki kopyası), seed, count, createdAt
   deals: [ { board, dealer, vul, pbn, dd?: {...}, par?: string } ]
   notes: string          # hocanın genel notu
 
@@ -200,7 +198,7 @@ sets/{setId}/boardNotes/{board}
 ### 5.3 Güvenlik — ÖNEMLİ
 Auth olmadan Firestore herkese açık kalır; site adresini bilen herkes veriyi silebilir. Bu etap için önlemler:
 1. **App Check** (reCAPTCHA v3) etkinleştir → sadece kendi sitenizden gelen istekler kabul edilir, script ile toplu silme engellenir.
-2. Güvenlik kurallarında **şema doğrulaması**: sadece `topics` ve `sets` koleksiyonlarına, beklenen alanlarla yazmaya izin ver; diğer her şey kapalı.
+2. Güvenlik kurallarında **şema doğrulaması**: sadece `sets` koleksiyonuna (ve alt koleksiyonu `boardNotes`'a), beklenen alanlarla yazmaya izin ver; diğer her şey kapalı.
 3. **Silme kapalı** olsun; arayüzde "sil" yerine `archived: true` işaretlensin.
 4. Firestore'un **günlük otomatik yedeği** (point-in-time recovery veya planlı export) açılsın.
 5. Site adresi paylaşılmasın.

@@ -267,8 +267,6 @@ export function draftToRecipe(draft: TopicDraft): Recipe {
 export function validateDraft(draft: TopicDraft): string[] {
   const errors: string[] = []
   const e = tr.editor.errors
-  if (!draft.name.trim()) errors.push(e.name)
-  if (!draft.category.trim()) errors.push(e.category)
 
   const checkRange = (where: string, field: string, value: Bounds) => {
     if (value[0] > value[1]) errors.push(e.range(where, field))

@@ -82,8 +82,8 @@ describe('validateDraft', () => {
     for (const topic of DEFAULT_TOPICS) expect(validateDraft(recipeToDraft(topic))).toEqual([])
   })
 
-  it('requires a name and category', () => {
-    expect(validateDraft(emptyDraft('x'))).toHaveLength(2)
+  it('accepts an empty draft (no constraints)', () => {
+    expect(validateDraft(emptyDraft('x'))).toEqual([])
   })
 
   it('rejects inverted ranges on enabled seats only', () => {

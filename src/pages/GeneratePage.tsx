@@ -1,24 +1,25 @@
-import { useMemo, useState, type FormEvent } from 'react'
-import { Link, useSearchParams } from 'react-router'
+import { useState, type FormEvent } from 'react'
+import { CustomTopicDialog } from '../components/CustomTopicDialog'
 import { DealCard } from '../components/DealCard'
 import { DealDialog } from '../components/DealDialog'
 import { dealCaption } from '../components/format'
 import { TopicSelect } from '../components/TopicSelect'
+import { CUSTOM_TOPIC_ID, DEFAULT_TOPICS } from '../data/topics'
+import { draftToRecipe, recipeToDraft, type TopicDraft } from '../data/topicDraft'
+import type { Recipe } from '../engine'
 import { useDealGenerator } from '../hooks/useDealGenerator'
-import { useTopics } from '../hooks/topicsContext'
 import { tr } from '../i18n/tr'
 
 const MAX_DEALS = 128
 const DEFAULT_COUNT = 16
 
 export function GeneratePage() {
-  const { topics: allTopics, loading } = useTopics()
-  const topics = useMemo(
-    () => allTopics.filter((t) => !t.archived).map((t) => t.recipe),
-    [allTopics],
-  )
-  const [searchParams] = useSearchParams()
-  const [topicId, setTopicId] = useState(searchParams.get('topic') ?? '')
+  const topics = DEFAULT_TOPICS
+  const [topicId, setTopicId] = useState(topics[0].id)
+  /** Son seçilen hazır konu; özel dağılım bunun ayarlarıyla başlar. */
+  const [presetId, setPresetId] = useState(topics[0].id)
+  const [customDraft, setCustomDraft] = useState<TopicDraft | null>(null)
+  const [customOpen, setCustomOpen] = useState(false)
   const [countText, setCountText] = useState(String(DEFAULT_COUNT))
   const [seed, setSeed] = useState('')
   const [focusOnly, setFocusOnly] = useState(false)
@@ -26,7 +27,9 @@ export function GeneratePage() {
   const [copied, setCopied] = useState(false)
   const { state, generate, cancel } = useDealGenerator()
 
-  const topic = topics.find((t) => t.id === topicId) ?? topics[0]
+  const preset = topics.find((t) => t.id === presetId) ?? topics[0]
+  const isCustom = topicId === CUSTOM_TOPIC_ID && customDraft !== null
+  const recipe: Recipe = isCustom ? draftToRecipe(customDraft) : preset
   const count = Number(countText)
   const countValid = Number.isInteger(count) && count >= 1 && count <= MAX_DEALS
   const running = state.status === 'running'
@@ -34,9 +37,31 @@ export function GeneratePage() {
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
-    if (!countValid || !topic) return
+    if (!countValid) return
     setSelected(null)
-    generate({ recipe: topic, count, seed })
+    generate({ recipe, count, seed })
+  }
+
+  function handleTopicChange(id: string) {
+    if (id === CUSTOM_TOPIC_ID) {
+      setCustomOpen(true)
+      return
+    }
+    setTopicId(id)
+    setPresetId(id)
+  }
+
+  function customInitial(): TopicDraft {
+    return (
+      customDraft ??
+      recipeToDraft({
+        ...preset,
+        id: CUSTOM_TOPIC_ID,
+        name: tr.generate.customTitle,
+        category: tr.generate.customGroup,
+        description: undefined,
+      })
+    )
   }
 
   async function copySeed(value: string) {
@@ -49,9 +74,6 @@ export function GeneratePage() {
     }
   }
 
-  if (loading) return <p className="text-slate-500">{tr.topics.loading}</p>
-  if (!topic) return <p className="text-slate-500">{tr.topics.notFound}</p>
-
   return (
     <div className="flex flex-col gap-6">
       <form
@@ -62,16 +84,26 @@ export function GeneratePage() {
           <label htmlFor="topic" className="text-sm font-medium text-slate-700">
             {tr.generate.topic}
           </label>
-          <TopicSelect id="topic" topics={topics} value={topic.id} onChange={setTopicId} />
-          <p className="text-xs text-slate-500">
-            {topic.description}{' '}
-            <Link
-              to={`/topics/${encodeURIComponent(topic.id)}`}
-              className="font-medium whitespace-nowrap text-emerald-700 hover:underline"
-            >
-              {tr.topics.editTopic}
-            </Link>
-          </p>
+          <TopicSelect
+            id="topic"
+            topics={topics}
+            value={isCustom ? CUSTOM_TOPIC_ID : preset.id}
+            onChange={handleTopicChange}
+          />
+          {isCustom ? (
+            <p className="text-xs text-slate-500">
+              {tr.generate.customSummary}{' '}
+              <button
+                type="button"
+                onClick={() => setCustomOpen(true)}
+                className="font-medium whitespace-nowrap text-emerald-700 hover:underline"
+              >
+                {tr.generate.customEdit}
+              </button>
+            </p>
+          ) : (
+            preset.description && <p className="text-xs text-slate-500">{preset.description}</p>
+          )}
         </div>
 
         <div className="flex flex-col gap-1">
@@ -130,6 +162,18 @@ export function GeneratePage() {
           )}
         </div>
       </form>
+
+      {customOpen && (
+        <CustomTopicDialog
+          initial={customInitial()}
+          onApply={(draft) => {
+            setCustomDraft(draft)
+            setTopicId(CUSTOM_TOPIC_ID)
+            setCustomOpen(false)
+          }}
+          onCancel={() => setCustomOpen(false)}
+        />
+      )}
 
       {state.status === 'running' && (
         <div className="flex flex-col gap-1">

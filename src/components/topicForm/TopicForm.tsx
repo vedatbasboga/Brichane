@@ -8,13 +8,12 @@ import { SeatEditor } from './SeatEditor'
 
 interface TopicFormProps {
   draft: TopicDraft
-  categories: string[]
   onChange: (draft: TopicDraft) => void
 }
 
-const inputClass = 'w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900'
+const selectClass = 'w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900'
 
-export function TopicForm({ draft, categories, onChange }: TopicFormProps) {
+export function TopicForm({ draft, onChange }: TopicFormProps) {
   const set = (patch: Partial<TopicDraft>) => onChange({ ...draft, ...patch })
 
   return (
@@ -22,42 +21,11 @@ export function TopicForm({ draft, categories, onChange }: TopicFormProps) {
       <section className="grid gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-2">
         <h2 className="text-lg font-semibold text-slate-900 md:col-span-2">{tr.editor.general}</h2>
         <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium text-slate-700">{tr.editor.name}</span>
-          <input
-            value={draft.name}
-            onChange={(event) => set({ name: event.target.value })}
-            className={inputClass}
-          />
-        </label>
-        <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium text-slate-700">{tr.editor.category}</span>
-          <input
-            value={draft.category}
-            list="topic-categories"
-            onChange={(event) => set({ category: event.target.value })}
-            className={inputClass}
-          />
-          <datalist id="topic-categories">
-            {categories.map((category) => (
-              <option key={category} value={category} />
-            ))}
-          </datalist>
-        </label>
-        <label className="flex flex-col gap-1.5 md:col-span-2">
-          <span className="text-sm font-medium text-slate-700">{tr.editor.description}</span>
-          <input
-            value={draft.description}
-            placeholder={tr.editor.descriptionPlaceholder}
-            onChange={(event) => set({ description: event.target.value })}
-            className={inputClass}
-          />
-        </label>
-        <label className="flex flex-col gap-1.5">
           <span className="text-sm font-medium text-slate-700">{tr.editor.dealer}</span>
           <select
             value={draft.dealer}
             onChange={(event) => set({ dealer: event.target.value as Seat })}
-            className={`${inputClass} bg-white`}
+            className={selectClass}
           >
             {SEATS.map((seat) => (
               <option key={seat} value={seat}>

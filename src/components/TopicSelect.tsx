@@ -1,5 +1,6 @@
-import { groupByCategory } from '../data/topics'
+import { CUSTOM_TOPIC_ID, groupByCategory } from '../data/topics'
 import type { Recipe } from '../engine'
+import { tr } from '../i18n/tr'
 
 interface TopicSelectProps {
   id: string
@@ -8,7 +9,7 @@ interface TopicSelectProps {
   onChange: (topicId: string) => void
 }
 
-/** Kategoriye göre gruplanmış konu seçici. */
+/** Kategoriye göre gruplanmış konu seçici; en altta "Özel dağılım…". */
 export function TopicSelect({ id, topics, value, onChange }: TopicSelectProps) {
   return (
     <select
@@ -26,6 +27,9 @@ export function TopicSelect({ id, topics, value, onChange }: TopicSelectProps) {
           ))}
         </optgroup>
       ))}
+      <optgroup label={tr.generate.customGroup}>
+        <option value={CUSTOM_TOPIC_ID}>{tr.generate.customOption}</option>
+      </optgroup>
     </select>
   )
 }

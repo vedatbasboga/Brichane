@@ -18,11 +18,6 @@ export const tr = {
   suitNames: { S: 'Pik', H: 'Kupa', D: 'Karo', C: 'Sinek' },
   shapes: { balanced: 'Dengeli', 'semi-balanced': 'Yarı dengeli', unbalanced: 'Dengesiz' },
 
-  nav: {
-    generate: 'El Atölyesi',
-    topics: 'Konular',
-  },
-
   generate: {
     title: 'El Atölyesi',
     topic: 'Konu',
@@ -47,6 +42,17 @@ export const tr = {
       `Gözlenen olasılık: ${percentFormat.format(probability)} (${numberFormat.format(attempts)} denemede)`,
     error: 'Üretim sırasında hata oluştu:',
     empty: 'Bir konu seçip “Üret”e basın.',
+    customGroup: 'Özel',
+    customOption: 'Özel dağılım…',
+    customTitle: 'Özel dağılım',
+    customHelp:
+      'Bu dağılım kaydedilmez; yalnızca şu anki üretim için kullanılır. Seçili konunun ayarlarıyla başlar.',
+    customSummary: 'Kendi belirlediğiniz koşullar.',
+    customEdit: 'Ayarları düzenle',
+    customApply: 'Uygula',
+    customCancel: 'Vazgeç',
+    customReset: 'Tüm koşulları temizle',
+    customFixErrors: 'Uygulamadan önce şunları düzeltin:',
   },
 
   board: {
@@ -66,32 +72,8 @@ export const tr = {
     controls: 'Kontrol',
   },
 
-  topics: {
-    title: 'Konular',
-    new: 'Yeni konu',
-    edit: 'Düzenle',
-    copy: 'Kopyala',
-    archive: 'Arşivle',
-    unarchive: 'Arşivden çıkar',
-    showArchived: 'Arşivlenenleri göster',
-    isDefault: 'Varsayılan',
-    archived: 'Arşivde',
-    copySuffix: ' (kopya)',
-    loading: 'Konular yükleniyor…',
-    loadError: 'Konular yüklenemedi:',
-    notFound: 'Konu bulunamadı.',
-    editTopic: 'Bu konuyu düzenle',
-    storageNote: 'Konular şimdilik bu tarayıcıda saklanıyor.',
-  },
-
   editor: {
-    newTitle: 'Yeni konu',
-    editTitle: 'Konuyu düzenle',
-    general: 'Genel',
-    name: 'Konu adı',
-    category: 'Kategori',
-    description: 'Açıklama',
-    descriptionPlaceholder: 'Örn. Açan: 15–17 HP, dengeli',
+    general: 'Genel ayarlar',
     dealer: 'Tarifin dağıtıcısı',
     dealerHelp: 'Elleri bu koltuk dağıtıcıymış gibi tanımlayın.',
     placement: 'Konu elinin yeri',
@@ -124,15 +106,7 @@ export const tr = {
     fitSuits: 'Fit renkleri (hiçbiri seçilmezse herhangi biri)',
     min: 'En az',
     max: 'En çok',
-    save: 'Kaydet',
-    saving: 'Kaydediliyor…',
-    cancel: 'Vazgeç',
-    try: 'Dene',
-    tryHelp: 'Tarifi kaydetmeden 4 el üretir.',
-    fixErrors: 'Kaydetmeden önce şunları düzeltin:',
     errors: {
-      name: 'Konu adı boş olamaz.',
-      category: 'Kategori boş olamaz.',
       range: (where: string, field: string) =>
         `${where} — ${field}: en az değeri en çok değerinden büyük olamaz.`,
       suitMinSum: (where: string) => `${where}: renklerin en az uzunlukları toplamı 13'ü geçemez.`,

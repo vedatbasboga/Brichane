@@ -37,9 +37,10 @@ Ağır işler (el üretimi, DDS) Web Worker'da. Veri Firestore'da, yayın Fireba
 
 ## Konular (`src/data/`)
 
-- `topics.ts`: varsayılan tarifler. `topicDraft.ts`: form modeli (tam aralık = koşul yok) ↔ `Recipe` dönüşümü ve doğrulama.
-- `topicStore.ts`: `TopicRepository` arayüzü; şimdilik localStorage, Faz 5'te Firestore. Hiç düzenlenmemiş varsayılanlar koddaki güncel tarifle yenilenir (`mergeDefaults`).
-- Silme yok, arşivleme var. Konulara `useTopics()` (`TopicsProvider`) ile erişilir.
+- **Kullanıcılar konu yönetmez.** Hazır konu listesi `topics.ts` içinde sabit; yeni konuyu geliştirici ekler. Konular için Firestore yok.
+- Ana sayfadaki seçicide "Özel dağılım…" (`CUSTOM_TOPIC_ID`) → `CustomTopicDialog` + `TopicForm`; anlık kullanılır, kaydedilmez.
+- `topicDraft.ts`: form modeli (tam aralık = koşul yok) ↔ `Recipe` dönüşümü ve doğrulama.
+- Bir sete kaydederken tarifin kopyası da saklanmalı (özel dağılımın kalıcı bir kaydı yok).
 
 ## Klasör yapısı
 
@@ -49,8 +50,8 @@ src/
   workers/       # dealWorker.ts, ddsWorker.ts
   data/          # varsayılan konu tarifleri
   firebase/      # firebase init + firestore erişim katmanı
-  components/    # HandView, DealCard, DealDialog, TopicSelect...
-  hooks/         # useDealGenerator (Worker yönetimi), topicsContext
-  pages/         # GeneratePage, TopicsPage, TopicEditPage (Sets, Print sonra)
+  components/    # HandView, DealCard, DealDialog, TopicSelect, CustomTopicDialog, topicForm/
+  hooks/         # useDealGenerator (Worker yönetimi)
+  pages/         # GeneratePage (Sets, Print sonra)
   i18n/tr.ts     # arayüz metinleri
 ```
