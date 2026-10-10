@@ -8,7 +8,7 @@ Bu plan Claude Code ile **faz faz** uygulanmak üzere yazıldı. Her fazı ayrı
 ## İlerleme
 
 - [x] Faz 1 — Proje iskeleti
-- [ ] Faz 2 — Briç motoru (çekirdek)
+- [x] Faz 2 — Briç motoru (çekirdek)
 - [ ] Faz 3 — Arayüz: üret ve incele
 - [ ] Faz 4 — Konu kütüphanesi
 - [ ] Faz 5 — Firebase bağlantısı (Auth olmadan)
