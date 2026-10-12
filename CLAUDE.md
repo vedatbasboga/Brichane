@@ -1,7 +1,7 @@
 # Briçhane
 
 Konuya göre briç eli üreten, çift kukla analizi yapan ve setleri PBN/baskı olarak veren web uygulaması.
-Tam plan ve faz durumu: [brichane_plan.md](brichane_plan.md) — bir fazı bitirince oradaki **İlerleme** listesinde işaretle.
+Yapılacaklar ve fikirler: [app_update_ideas.md](app_update_ideas.md) — canlı liste; bir madde uygulanınca oradan silinir, yeni fikirler ilgili bölüme eklenir.
 
 ## Teknoloji
 
