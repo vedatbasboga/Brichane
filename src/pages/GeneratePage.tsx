@@ -61,6 +61,8 @@ export function GeneratePage() {
     shared.status === 'invalid' ? 'invalid' : shared.status === 'ok' ? shared.warning : null,
   )
   const [saveOpen, setSaveOpen] = useState(false)
+  /** Üret'ten sonra form gizlenir, yalnızca sonuçlar görünür (paylaşılan bağlantıyla da). */
+  const [showResults, setShowResults] = useState(sharedTarget !== null)
   const [savedSetId, setSavedSetId] = useState<string | null>(null)
   const { state, generate, cancel } = useDealGenerator()
 
@@ -95,8 +97,11 @@ export function GeneratePage() {
   // Adres çubuğu her zaman son setin bağlantısını gösterir; yenileyince aynı eller gelir.
   const shareQuery = shareParams?.toString()
   useEffect(() => {
-    if (shareQuery) setSearchParams(new URLSearchParams(shareQuery), { replace: true })
-  }, [shareQuery, setSearchParams])
+    // Forma dönülünce (Geri) adres çubuğu temiz kalır.
+    if (shareQuery && showResults) {
+      setSearchParams(new URLSearchParams(shareQuery), { replace: true })
+    }
+  }, [shareQuery, showResults, setSearchParams])
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
@@ -106,6 +111,18 @@ export function GeneratePage() {
     setLinkNotice(null)
     setGeneratedWith({ recipe, topicId: isCustom ? CUSTOM_TOPIC_ID : preset.id, count })
     generate({ recipe, count })
+    setShowResults(true)
+    window.scrollTo({ top: 0 })
+  }
+
+  /** Forma dön; seçimler korunur, adres çubuğundaki set bağlantısı temizlenir. */
+  function handleBack() {
+    if (running) cancel()
+    setShowResults(false)
+    setSelected(null)
+    setLinkNotice(null)
+    setSearchParams(new URLSearchParams(), { replace: true })
+    window.scrollTo({ top: 0 })
   }
 
   async function handleSave(title: string, notes: string) {
@@ -156,74 +173,80 @@ export function GeneratePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="bh-display">{tr.generate.title}</h1>
+      {!showResults && (
+        <>
+          <h1 className="bh-display">{tr.generate.title}</h1>
 
-      <form
-        onSubmit={handleSubmit}
-        className="bh-panel grid gap-4 sm:grid-cols-[minmax(0,3fr)_minmax(0,1fr)_auto] sm:items-start"
-      >
-        <div className="bh-field">
-          <label htmlFor="topic" className="bh-field-label">
-            {tr.generate.topic}
-          </label>
-          <TopicSelect
-            id="topic"
-            topics={topics}
-            value={isCustom ? CUSTOM_TOPIC_ID : preset.id}
-            onChange={handleTopicChange}
-          />
-          {isCustom ? (
-            <p className="bh-field-hint">
-              {tr.generate.customSummary}{' '}
-              <button
-                type="button"
-                onClick={() => setCustomOpen(true)}
-                className="bh-link whitespace-nowrap"
-              >
-                {tr.generate.customEdit}
-              </button>
-            </p>
-          ) : (
-            preset.description && (
-              <p className="bh-field-hint">
-                <SuitText text={preset.description} />
-              </p>
-            )
-          )}
-        </div>
+          <form
+            onSubmit={handleSubmit}
+            className="bh-panel grid gap-4 sm:grid-cols-[minmax(0,3fr)_minmax(0,1fr)_auto] sm:items-start"
+          >
+            <div className="bh-field">
+              <label htmlFor="topic" className="bh-field-label">
+                {tr.generate.topic}
+              </label>
+              <TopicSelect
+                id="topic"
+                topics={topics}
+                value={isCustom ? CUSTOM_TOPIC_ID : preset.id}
+                onChange={handleTopicChange}
+              />
+              {isCustom ? (
+                <p className="bh-field-hint">
+                  {tr.generate.customSummary}{' '}
+                  <button
+                    type="button"
+                    onClick={() => setCustomOpen(true)}
+                    className="bh-link whitespace-nowrap"
+                  >
+                    {tr.generate.customEdit}
+                  </button>
+                </p>
+              ) : (
+                preset.description && (
+                  <p className="bh-field-hint">
+                    <SuitText text={preset.description} />
+                  </p>
+                )
+              )}
+            </div>
 
-        <Field
-          label={tr.generate.count}
-          error={countValid ? undefined : tr.generate.countInvalid(MAX_DEALS)}
-        >
-          <Input
-            id="count"
-            type="number"
-            inputMode="numeric"
-            min={1}
-            max={MAX_DEALS}
-            value={countText}
-            onChange={(event) => setCountText(event.target.value)}
-          />
-        </Field>
-
-        <div className="sm:pt-[22px]">
-          {running ? (
-            <Button onClick={cancel} className="w-full sm:w-auto">
-              {tr.generate.cancel}
-            </Button>
-          ) : (
-            <Button
-              variant="primary"
-              type="submit"
-              disabled={!countValid}
-              className="w-full sm:w-auto"
+            <Field
+              label={tr.generate.count}
+              error={countValid ? undefined : tr.generate.countInvalid(MAX_DEALS)}
             >
-              {tr.generate.submit}
-            </Button>
-          )}
-        </div>
-      </form>
+              <Input
+                id="count"
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={MAX_DEALS}
+                value={countText}
+                onChange={(event) => setCountText(event.target.value)}
+              />
+            </Field>
+
+            <div className="sm:pt-[22px]">
+              {running ? (
+                <Button onClick={cancel} className="w-full sm:w-auto">
+                  {tr.generate.cancel}
+                </Button>
+              ) : (
+                <Button
+                  variant="primary"
+                  type="submit"
+                  disabled={!countValid}
+                  className="w-full sm:w-auto"
+                >
+                  {tr.generate.submit}
+                </Button>
+              )}
+            </div>
+          </form>
+
+          {state.status === 'idle' && <Notice>{tr.generate.empty}</Notice>}
+        </>
+      )}
 
       {customOpen && (
         <CustomTopicDialog
@@ -237,127 +260,135 @@ export function GeneratePage() {
         />
       )}
 
-      {linkNotice && (
-        <Notice tone={linkNotice === 'invalid' ? 'warning' : 'info'}>{tr.share[linkNotice]}</Notice>
-      )}
+      {showResults && (
+        <>
+          <Button variant="quiet" size="sm" className="-ml-3 self-start" onClick={handleBack}>
+            ← {tr.generate.back}
+          </Button>
 
-      {state.status === 'running' && (
-        <Progress
-          value={state.progress?.found ?? 0}
-          max={state.progress?.count ?? count}
-          label={progressLabel}
-        />
-      )}
-
-      {state.status === 'error' && (
-        <Notice tone="danger">
-          {tr.generate.error} {state.message}
-        </Notice>
-      )}
-
-      {state.status === 'idle' && !sharedTarget && <Notice>{tr.generate.empty}</Notice>}
-
-      {result && generatedWith && (
-        <section className="flex flex-col gap-4">
-          {result.status === 'exhausted' && (
-            <Notice tone="warning" title={tr.generate.exhausted}>
-              {result.deals.length > 0 && (
-                <p>{tr.generate.exhaustedPartial(result.deals.length, generatedWith.count)}</p>
-              )}
-              <p>{tr.generate.observed(result.observedProbability, result.attempts)}</p>
+          {linkNotice && (
+            <Notice tone={linkNotice === 'invalid' ? 'warning' : 'info'}>
+              {tr.share[linkNotice]}
             </Notice>
           )}
 
-          {result.deals.length > 0 && (
-            <>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="m-0 flex flex-wrap items-baseline gap-x-3">
-                  <span className="font-semibold">
-                    {generatedWith.recipe.name} · {tr.generate.summary(result.deals.length)}
-                  </span>
-                  {dd.error ? (
-                    <span className="text-danger-ink text-[13px]">
-                      {tr.dd.error} {dd.error}
-                    </span>
-                  ) : (
-                    !ddComplete && (
-                      <span className="text-ink-muted text-[13px] tabular-nums">
-                        {tr.dd.progress(dd.done, dd.total)}
-                      </span>
-                    )
-                  )}
-                </p>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Checkbox
-                    checked={focusOnly}
-                    onChange={(event) => setFocusOnly(event.target.checked)}
-                    label={tr.generate.focusOnly}
-                    className="mr-2"
-                  />
-                  {shareUrl && <ShareButton url={shareUrl} title={generatedWith.recipe.name} />}
-                  <PdfButton
-                    getOptions={() => ({
-                      title: generatedWith.recipe.name,
-                      topicName: generatedWith.recipe.name,
-                      deals: result.deals,
-                      dd: dd.results,
-                      focusOnly,
-                      shareUrl: shareUrl ?? undefined,
-                    })}
-                  />
-                  <PbnButton
-                    getOptions={() => ({
-                      event: generatedWith.recipe.name,
-                      date: new Date(),
-                      deals: result.deals,
-                      dd: dd.results,
-                      sourceUrl: shareUrl ?? undefined,
-                    })}
-                  />
-                  {!savedSetId && (
-                    <Button onClick={() => setSaveOpen(true)}>{tr.save.button}</Button>
-                  )}
-                </div>
-              </div>
-
-              {savedSetId && (
-                <Notice
-                  tone="success"
-                  title={tr.save.saved}
-                  action={
-                    <Link to={`/sets/${savedSetId}`} className="bh-link">
-                      {tr.save.open}
-                    </Link>
-                  }
-                />
-              )}
-
-              <DealGrid
-                deals={result.deals}
-                focusOnly={focusOnly}
-                onOpen={setSelected}
-                dd={dd.results}
-              />
-
-              {saveOpen && (
-                <SaveSetDialog
-                  defaultTitle={defaultSetTitle(generatedWith.recipe.name, new Date())}
-                  onSave={handleSave}
-                  onCancel={() => setSaveOpen(false)}
-                />
-              )}
-
-              <DealDialog
-                deals={result.deals}
-                index={selected}
-                focusOnly={focusOnly}
-                onClose={() => setSelected(null)}
-                onNavigate={setSelected}
-                dd={dd.results}
-              />
-            </>
+          {state.status === 'running' && (
+            <Progress
+              value={state.progress?.found ?? 0}
+              max={state.progress?.count ?? count}
+              label={progressLabel}
+            />
           )}
-        </section>
+
+          {state.status === 'error' && (
+            <Notice tone="danger">
+              {tr.generate.error} {state.message}
+            </Notice>
+          )}
+
+          {result && generatedWith && (
+            <section className="flex flex-col gap-4">
+              {result.status === 'exhausted' && (
+                <Notice tone="warning" title={tr.generate.exhausted}>
+                  {result.deals.length > 0 && (
+                    <p>{tr.generate.exhaustedPartial(result.deals.length, generatedWith.count)}</p>
+                  )}
+                  <p>{tr.generate.observed(result.observedProbability, result.attempts)}</p>
+                </Notice>
+              )}
+
+              {result.deals.length > 0 && (
+                <>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className="m-0 flex flex-wrap items-baseline gap-x-3">
+                      <span className="font-semibold">
+                        {generatedWith.recipe.name} · {tr.generate.summary(result.deals.length)}
+                      </span>
+                      {dd.error ? (
+                        <span className="text-danger-ink text-[13px]">
+                          {tr.dd.error} {dd.error}
+                        </span>
+                      ) : (
+                        !ddComplete && (
+                          <span className="text-ink-muted text-[13px] tabular-nums">
+                            {tr.dd.progress(dd.done, dd.total)}
+                          </span>
+                        )
+                      )}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Checkbox
+                        checked={focusOnly}
+                        onChange={(event) => setFocusOnly(event.target.checked)}
+                        label={tr.generate.focusOnly}
+                        className="mr-2"
+                      />
+                      {shareUrl && <ShareButton url={shareUrl} title={generatedWith.recipe.name} />}
+                      <PdfButton
+                        getOptions={() => ({
+                          title: generatedWith.recipe.name,
+                          topicName: generatedWith.recipe.name,
+                          deals: result.deals,
+                          dd: dd.results,
+                          focusOnly,
+                          shareUrl: shareUrl ?? undefined,
+                        })}
+                      />
+                      <PbnButton
+                        getOptions={() => ({
+                          event: generatedWith.recipe.name,
+                          date: new Date(),
+                          deals: result.deals,
+                          dd: dd.results,
+                          sourceUrl: shareUrl ?? undefined,
+                        })}
+                      />
+                      {!savedSetId && (
+                        <Button onClick={() => setSaveOpen(true)}>{tr.save.button}</Button>
+                      )}
+                    </div>
+                  </div>
+
+                  {savedSetId && (
+                    <Notice
+                      tone="success"
+                      title={tr.save.saved}
+                      action={
+                        <Link to={`/sets/${savedSetId}`} className="bh-link">
+                          {tr.save.open}
+                        </Link>
+                      }
+                    />
+                  )}
+
+                  <DealGrid
+                    deals={result.deals}
+                    focusOnly={focusOnly}
+                    onOpen={setSelected}
+                    dd={dd.results}
+                  />
+
+                  {saveOpen && (
+                    <SaveSetDialog
+                      defaultTitle={defaultSetTitle(generatedWith.recipe.name, new Date())}
+                      onSave={handleSave}
+                      onCancel={() => setSaveOpen(false)}
+                    />
+                  )}
+
+                  <DealDialog
+                    deals={result.deals}
+                    index={selected}
+                    focusOnly={focusOnly}
+                    onClose={() => setSelected(null)}
+                    onNavigate={setSelected}
+                    dd={dd.results}
+                  />
+                </>
+              )}
+            </section>
+          )}
+        </>
       )}
     </div>
   )

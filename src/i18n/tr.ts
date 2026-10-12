@@ -37,6 +37,7 @@ export const tr = {
     count: 'El sayısı',
     countInvalid: (max: number) => `1 ile ${max} arasında bir sayı girin.`,
     submit: 'Üret',
+    back: 'Geri',
     cancel: 'Durdur',
     running: 'Üretiliyor…',
     progress: (found: number, count: number) => `${found} / ${count} el`,
