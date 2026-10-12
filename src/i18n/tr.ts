@@ -189,7 +189,7 @@ export const tr = {
 
   board: {
     board: 'Board',
-    dealer: 'Dağıtıcı',
+    dealer: 'Dealer',
     hidden: 'Gizli',
     open: 'Büyüt',
   },
@@ -206,13 +206,13 @@ export const tr = {
 
   editor: {
     general: 'Genel ayarlar',
-    dealer: 'Tarifin dağıtıcısı',
-    dealerHelp: 'Elleri bu koltuk dağıtıcıymış gibi tanımlayın.',
+    dealer: "Tarifin dealer'ı",
+    dealerHelp: "Elleri bu koltuk dealer'mış gibi tanımlayın.",
     placement: 'Konu elinin yeri',
     placementBalanced: 'Dört koltuğa dengeli dağıt (önerilen)',
     placementFixed: 'Tarifteki koltukta sabit tut',
     placementHelp:
-      "Dengeli: tarifin dağıtıcısı board'un dağıtıcısına çevrilir; 16 board'da konu eli her koltuğa 4 kez düşer.",
+      "Dengeli: tarifin dealer'ı board'un dealer'ına çevrilir; 16 board'da konu eli her koltuğa 4 kez düşer.",
     topicSuit: 'Konu rengi',
     topicSuitHelp:
       'Birden fazla eli aynı renge bağlamak için (örn. rakibin açtığı renk). Seçilen renklerden biri konu rengi olur; ellerde "Konu rengindeki uzunluk" ile kullanılır.',
