@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Link, NavLink, Route, Routes } from 'react-router'
+import { SettingsMenu } from './components/SettingsMenu'
 import { Mark } from './components/ui/Mark'
 import { tr } from './i18n/tr'
 import { GeneratePage } from './pages/GeneratePage'
@@ -30,6 +31,9 @@ export default function App() {
                 {tr.nav.sets}
               </NavLink>
             </nav>
+            <div className="bh-topbar-end">
+              <SettingsMenu />
+            </div>
           </div>
         </header>
         <main className="bh-page w-full flex-1">

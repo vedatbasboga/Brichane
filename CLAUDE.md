@@ -31,7 +31,7 @@ Ağır işler (el üretimi, DDS) Web Worker'da. Veri Firestore'da, yayın Fireba
 ## Tasarım sistemi (`design/`, `src/styles/`)
 
 - Claude Design'dan gelen sistem `design/` altında (README, `tokens.json`, bileşen tanımları, logolar, renk sembolleri). Kaynak belge; Prettier dışında.
-- Değerler `src/styles/tokens.css` (iki tema: Kâğıt açık / Gece koyu, `prefers-color-scheme`), bileşen stilleri `src/styles/components.css` (`bh-*` sınıfları). Tailwind'de `bg-paper`, `text-ink-muted`, `border-line` vb. bu değerlere bağlı.
+- Değerler `src/styles/tokens.css` (iki tema: Kâğıt açık varsayılan / Gece koyu `html[data-theme=dark]`; seçim üst bardaki Ayarlar'dan, `useTheme`, localStorage `brichane.theme`; `index.html` betiği ilk boyamadan önce uygular), bileşen stilleri `src/styles/components.css` (`bh-*` sınıfları). Tailwind'de `bg-paper`, `text-ink-muted`, `border-line` vb. bu değerlere bağlı.
 - Arayüz parçaları `src/components/ui/` (Button, Field/Input/Select/TextArea, Checkbox, Tag, Notice, Progress, Modal, Suit, SuitText, Mark). Renk sembolleri yazı tipi karakteri değil `Suit` SVG'si; metindeki ♠♥♦♣ için `SuitText`.
 - **Koşullu sınıflar için `cx()` kullan** (`ui/cx.ts`): Prettier'ın Tailwind eklentisi `className` içindeki metinlerin baştaki boşluğunu silip sınıfları yapıştırıyor.
 - Yeni renk/ölçü eklemeden önce `design/tokens.json`'a bak; `slate-`, `emerald-` gibi hazır Tailwind renkleri kullanılmaz.

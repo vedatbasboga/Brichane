@@ -1,5 +1,5 @@
 /* Briçhane tasarım değerleri (design/tokens.json). İki tema: Kâğıt (açık, varsayılan) ve
-   Gece (koyu, cihaz karanlık moddaysa). Bileşenler yalnızca bu değişkenleri kullanır. */
+   Gece (koyu, Ayarlar'dan seçilir). Bileşenler yalnızca bu değişkenleri kullanır. */
 
 @font-face {
   font-family: 'IBM Plex Sans';
@@ -85,32 +85,31 @@
   --opacity-archived: 0.62;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
+/* Gece (koyu) tema: Ayarlar'dan açılır; varsayılan Kâğıt (açık). */
+:root[data-theme='dark'] {
+  color-scheme: dark;
 
-    --paper: #141714;
-    --surface: #1c201c;
-    --surface-sunken: #252a25;
-    --ink: #ebe5d6;
-    --ink-muted: #a9a394;
-    --line: #363c36;
-    --line-strong: #7a8177;
-    --felt: #74c29d;
-    --felt-hover: #94d4b4;
-    --on-felt: #0d1a13;
-    --felt-tint: #1c3328;
-    --suit-red: #f2897e;
-    --vuln: #e0675c;
-    --on-vuln: #1a0d0b;
-    --par: #5e4c10;
-    --warning-bg: #36290d;
-    --warning-ink: #f0cd85;
-    --warning-line: #a87b27;
-    --danger-bg: #371713;
-    --danger-ink: #f4a69c;
-    --danger-line: #c4584e;
-    --backdrop: rgba(0, 0, 0, 0.62);
-    --shadow-dialog: 0 12px 32px rgba(0, 0, 0, 0.5);
-  }
+  --paper: #141714;
+  --surface: #1c201c;
+  --surface-sunken: #252a25;
+  --ink: #ebe5d6;
+  --ink-muted: #a9a394;
+  --line: #363c36;
+  --line-strong: #7a8177;
+  --felt: #74c29d;
+  --felt-hover: #94d4b4;
+  --on-felt: #0d1a13;
+  --felt-tint: #1c3328;
+  --suit-red: #f2897e;
+  --vuln: #e0675c;
+  --on-vuln: #1a0d0b;
+  --par: #5e4c10;
+  --warning-bg: #36290d;
+  --warning-ink: #f0cd85;
+  --warning-line: #a87b27;
+  --danger-bg: #371713;
+  --danger-ink: #f4a69c;
+  --danger-line: #c4584e;
+  --backdrop: rgba(0, 0, 0, 0.62);
+  --shadow-dialog: 0 12px 32px rgba(0, 0, 0, 0.5);
 }

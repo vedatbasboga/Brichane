@@ -18,6 +18,13 @@ export const tr = {
   suitNames: { S: 'Pik', H: 'Kupa', D: 'Karo', C: 'Sinek' },
   shapes: { balanced: 'Dengeli', 'semi-balanced': 'Yarı dengeli', unbalanced: 'Dengesiz' },
 
+  settings: {
+    button: 'Ayarlar',
+    title: 'Ayarlar',
+    darkTheme: 'Koyu tema',
+    darkThemeHint: 'Karanlık ortamlar için.',
+  },
+
   nav: {
     label: 'Ana gezinme',
     generate: 'El Atölyesi',
