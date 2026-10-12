@@ -47,6 +47,7 @@ Ağır işler (el üretimi, DDS) Web Worker'da. Veri Firestore'da, yayın Fireba
 - `generateDeals` reddetme örneklemesi yapar; `dealWorker.ts` bunu Web Worker'da çalıştırır.
 - `topicSuit` (konu rengi): tarifte izin verilen renklerden biri seçilir, koltukların `topicSuit` aralığı aynı renge uygulanır (takeout kontr: rakip X'te 5+, kontr eden X'te 0–1).
 - Çift kukla: `dd.ts` (modeller, DDS tablo/hex dönüşümleri, par ayrıştırma). Hesap `workers/ddsWorker.ts` (bridge-dds, WebAssembly), havuz `hooks/useDdAnalysis.ts` (en fazla 3 işçi). DDS tablo sırası ♠ ♥ ♦ ♣ NT × K D G B; gösterim ♣ ♦ ♥ ♠ NT.
+- Oynat (çift kukla oyunu): `play.ts` saf mantık (löve kazananı, `playStateAt`, `choosePlay` — eşdeğer kartlarda çıkışta en yüksek, takipte en düşük; tek en iyi kart = kritik hamle; `defaultContract` = par). DDS ile hesap `workers/ddPlay.ts` (`SolveBoardPBN`, bütün kartlar + skor), işçide `'play'` mesajı, hook `useDdPlay`. Sonuç tablodaki löveyle aynı olmalı (`ddPlay.test.ts` gerçek DDS ile doğrular).
 - Ortak test verileri: `src/engine/testFixtures.ts`.
 
 ## Konular (`src/data/`)

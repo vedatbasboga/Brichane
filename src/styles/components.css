@@ -967,3 +967,79 @@ dialog.bh-dialog-xl {
   font-weight: 600;
   letter-spacing: -0.01em;
 }
+
+/* ---- Oynat (çift kukla oyunu) ---- */
+.bh-card {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 40px;
+  height: 28px;
+  padding: 0 6px;
+  box-sizing: border-box;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 18px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.bh-card.is-winner {
+  background: var(--felt-tint);
+  border-color: var(--felt);
+  box-shadow: inset 0 0 0 1px var(--felt);
+}
+.bh-trick {
+  display: grid;
+  grid-template-columns: 44px 44px 44px;
+  grid-template-rows: 30px 30px 30px;
+  gap: 2px;
+  place-items: center;
+  padding: var(--space-2);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+}
+.bh-trick-N {
+  grid-area: 1 / 2;
+}
+.bh-trick-W {
+  grid-area: 2 / 1;
+}
+.bh-trick-E {
+  grid-area: 2 / 3;
+}
+.bh-trick-S {
+  grid-area: 3 / 2;
+}
+.bh-hand.is-active .bh-hand-seat {
+  color: var(--felt);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+.bh-play-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.bh-dd-table td > button {
+  width: 100%;
+  height: 100%;
+  min-height: 24px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.bh-dd-table td > button:hover {
+  text-decoration: underline;
+}
+.bh-dd-table td.is-selected {
+  box-shadow: inset 0 0 0 2px var(--felt);
+}

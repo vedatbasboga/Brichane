@@ -62,7 +62,7 @@ export function useDdAnalysis(
       worker.onmessage = (event: MessageEvent<DdsWorkerResponse>) => {
         const message = event.data
         if (message.type === 'result') update(message.id, message.result, null)
-        else update(message.id, undefined, message.message)
+        else if (message.type === 'error') update(message.id, undefined, message.message)
         dispatch(worker)
       }
       worker.onerror = (event) => update(-1, undefined, event.message || 'DDS')

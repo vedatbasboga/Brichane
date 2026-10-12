@@ -1,4 +1,12 @@
-import { STRAINS, contractLevel, parCells, type DdResult, type Seat } from '../engine'
+import {
+  STRAINS,
+  STRAIN_SYMBOLS,
+  contractLevel,
+  parCells,
+  type DdResult,
+  type Seat,
+  type Strain,
+} from '../engine'
 import { tr } from '../i18n/tr'
 import { formatPar } from './ddFormat'
 import { Suit } from './ui/Suit'
@@ -10,13 +18,17 @@ const ROWS: readonly Seat[] = ['N', 'S', 'E', 'W']
 interface DdTableProps {
   result?: DdResult
   size?: 'sm' | 'lg'
+  /** Verilirse hücreler tıklanabilir (o kontratı oynat). */
+  onSelect?: (seat: Seat, strain: Strain) => void
+  /** Seçili (oynatılan) hücre. */
+  selected?: { declarer: Seat; strain: Strain } | null
 }
 
 /**
  * Çift kukla tablosu: K G D B × ♣ ♦ ♥ ♠ NT; hücrede yapılabilecek en yüksek kontrat seviyesi
  * ya da "–". Par kontratın hücresi sarı; altında par satırı.
  */
-export function DdTable({ result, size = 'sm' }: DdTableProps) {
+export function DdTable({ result, size = 'sm', onSelect, selected }: DdTableProps) {
   if (!result) {
     return (
       <p className="bh-dd-wait" aria-live="polite">
@@ -49,12 +61,27 @@ export function DdTable({ result, size = 'sm' }: DdTableProps) {
               {STRAINS.map((strain) => {
                 const level = contractLevel(result.tricks[seat][strain])
                 const isPar = par.has(`${seat}${strain}`)
+                const isSelected = selected?.declarer === seat && selected.strain === strain
                 return (
                   <td
                     key={strain}
-                    className={isPar ? 'is-par' : level === null ? 'is-none' : undefined}
+                    className={cx(
+                      isPar ? 'is-par' : level === null && 'is-none',
+                      isSelected && 'is-selected',
+                    )}
                   >
-                    {level ?? '–'}
+                    {onSelect ? (
+                      <button
+                        type="button"
+                        onClick={() => onSelect(seat, strain)}
+                        aria-pressed={isSelected}
+                        aria-label={`${tr.seatNames[seat]} ${STRAIN_SYMBOLS[strain]}: ${level ?? '–'}`}
+                      >
+                        {level ?? '–'}
+                      </button>
+                    ) : (
+                      (level ?? '–')
+                    )}
                   </td>
                 )
               })}
