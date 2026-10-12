@@ -92,8 +92,8 @@ export const tr = {
   dd: {
     title: 'Çift kukla analizi',
     help: 'Dört el açık ve hatasız oyunla her deklarenin her kozda yapabileceği en yüksek kontrat (–: kontrat çıkmaz). Sarı: par kontrat.',
-    computing: 'Çift kukla hesaplanıyor…',
-    progress: (done: number, total: number) => `Çift kukla: ${done}/${total}`,
+    computing: 'Eller analiz ediliyor…',
+    progress: (done: number, total: number) => `Eller analiz ediliyor: ${done}/${total}`,
     par: 'Par',
     passOut: 'Pas',
     error: 'Çift kukla hesaplanamadı:',
@@ -201,7 +201,7 @@ export const tr = {
     next: 'Sonraki',
     hand: 'El',
     shape: 'Dağılım',
-    ltc: 'LTC',
+    ltc: 'Kayıp',
     controls: 'Kontrol',
   },
 
