@@ -89,6 +89,41 @@ export const DEFAULT_TOPICS: Recipe[] = [
     seats: { S: ONE_NT_OPENER, N: { anySuit: { suits: ['S', 'H'], length: [5, 13] } } },
   },
   {
+    // 1NT – (2♦/2♥/2♠) – ?: 2NT 3♣ ister; zayıf el renginde durur, güçlü el kesere göre konuşur.
+    // 2♣ müdahalesi yok sayılır (1NT – Pas gibi), bu yüzden konu rengi ♦ ♥ ♠.
+    id: 'lebensohl',
+    name: 'Lebensohl',
+    category: '1NT sonrası',
+    description:
+      'Açan: 1NT eli; rakip 2♦/2♥/2♠ ile girer (8–16 HP, 5+); ortağı: 10+ HP ya da zayıf ve dağılımlı (uzun renkli), rakibin renginde en fazla 4.',
+    dealer: 'S',
+    topicSuit: { suits: ['S', 'H', 'D'] },
+    seats: {
+      S: ONE_NT_OPENER,
+      W: { hcp: [8, 16], topicSuit: [5, 13], topicSuitLongest: true },
+      N: {
+        topicSuit: [0, 4],
+        // Pas geçecek el olmasın: ya zon gücü ya da oynamak istediği uzun renk (dengeli değil).
+        exclude: [{ hcp: [0, 9], shape: 'balanced' }],
+      },
+    },
+  },
+  {
+    // 1♣/1♦ – 1M – 1NT – 2♣: ortağın majöründe 3'lü destek ve açanın min/max'ı sorulur.
+    id: 'check-back-stayman',
+    name: 'Check Back Stayman',
+    category: 'Minör açılış sonrası',
+    description:
+      'Açan: 1♣/1♦ açıp 1NT ile tekrar eder (12–14 HP, dengeli, ♠ ve ortağın majöründe en fazla 3); ortağı: 11+ HP, 5+ majör.',
+    dealer: 'S',
+    topicSuit: { suits: ['S', 'H'] },
+    seats: {
+      // ♠ en fazla 3: 4'lü pikle 1♥ cevabına 1♠ denirdi; ♥ 4'lü olabilir (1♠ cevabından sonra 1NT).
+      S: { hcp: [12, 14], shape: 'balanced', suits: { S: [0, 3], H: [0, 4] }, topicSuit: [0, 3] },
+      N: { hcp: [11, 37], topicSuit: [5, 13], topicSuitLongest: true },
+    },
+  },
+  {
     id: 'takeout-double',
     name: 'Takeout kontr',
     category: 'Rekabet',

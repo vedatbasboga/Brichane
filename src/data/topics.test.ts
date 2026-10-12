@@ -80,12 +80,56 @@ describe('competitive topics use the suit the opponent actually opens', () => {
   })
 })
 
+describe('conventions after the opening', () => {
+  it('Lebensohl: 1NT, a 2♦/2♥/2♠ overcall and a responder who has something to bid', () => {
+    const topic = DEFAULT_TOPICS.find((t) => t.id === 'lebensohl')!
+    const { deals } = generateDeals({ recipe: topic, count: 200, seed: 'lebensohl' })
+    for (const deal of deals) {
+      const opener = deal.hands[deal.dealer]
+      const overcaller = deal.hands[rotateSeat(deal.dealer, 1)]
+      const responder = deal.hands[rotateSeat(deal.dealer, 2)]
+      expect(hcp(opener)).toBeGreaterThanOrEqual(15)
+      expect(hcp(opener)).toBeLessThanOrEqual(17)
+      expect(shapeClass(opener)).toBe('balanced')
+      const overcalled = openingSuit(overcaller)
+      expect(overcalled).not.toBe('C')
+      expect(suitLengths(overcaller)[overcalled]).toBeGreaterThanOrEqual(5)
+      expect(hcp(overcaller)).toBeGreaterThanOrEqual(8)
+      expect(hcp(overcaller)).toBeLessThanOrEqual(16)
+      const lengths = suitLengths(responder)
+      expect(lengths[overcalled]).toBeLessThanOrEqual(4)
+      expect(hcp(responder) >= 10 || shapeClass(responder) !== 'balanced').toBe(true)
+    }
+  })
+
+  it('Check Back Stayman: 1m – 1M – 1NT (12–14) with a 5+ major responder', () => {
+    const topic = DEFAULT_TOPICS.find((t) => t.id === 'check-back-stayman')!
+    const { deals } = generateDeals({ recipe: topic, count: 200, seed: 'cbs' })
+    for (const deal of deals) {
+      const opener = deal.hands[deal.dealer]
+      const responder = deal.hands[rotateSeat(deal.dealer, 2)]
+      const openerLengths = suitLengths(opener)
+      expect(hcp(opener)).toBeGreaterThanOrEqual(12)
+      expect(hcp(opener)).toBeLessThanOrEqual(14)
+      expect(shapeClass(opener)).toBe('balanced')
+      expect(openerLengths.S).toBeLessThanOrEqual(3)
+      expect(openerLengths.H).toBeLessThanOrEqual(4)
+      const major = openingSuit(responder)
+      expect(['S', 'H']).toContain(major)
+      expect(suitLengths(responder)[major]).toBeGreaterThanOrEqual(5)
+      expect(openerLengths[major]).toBeLessThanOrEqual(3)
+      expect(hcp(responder)).toBeGreaterThanOrEqual(11)
+    }
+  })
+})
+
 describe('groupByCategory', () => {
   it('groups topics keeping first-seen order', () => {
     const groups = groupByCategory(DEFAULT_TOPICS, (topic) => topic.category)
     expect(groups.map(([category]) => category)).toEqual([
       'Açılışlar',
       '1NT sonrası',
+      'Minör açılış sonrası',
       'Rekabet',
       'Şlem',
       'Oyun',

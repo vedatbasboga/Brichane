@@ -35,6 +35,7 @@ Bridge Composer, BBO ya da turnuvadan gelen `.pbn` dosyası yüklenince eller a�
 
 ### Konular
 - Yeni hazır konular: Jacoby transfer (♥/♠ ayrı), 2♣ güçlü açış, splinter, Blackwood/RKCB, Michaels/Unusual NT, preemptif açılışlar (3'lü), dengeleme (balancing), negatif kontr.
+- Lebensohl'un ikinci kullanımı: rakip zayıf iki açar, ortak kontr eder, cevapçı 2NT ile zayıf/güçlü eli ayırır (ayrı konu olarak).
 - Konu açıklamasına kısa "derste ne sorulur" notu.
 
 ### Analiz ve oyun
