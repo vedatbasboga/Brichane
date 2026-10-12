@@ -855,6 +855,8 @@ dialog.bh-dialog-xl {
 }
 .bh-board-B {
   grid-area: W;
+  /* Batı'nın eli masaya yaslanır (Doğu'nunki gibi); aksi halde sütunun solunda kalıyordu. */
+  justify-self: end;
 }
 .bh-board-C {
   grid-area: C;
@@ -1025,6 +1027,7 @@ dialog.bh-dialog-xl {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
   gap: var(--space-2);
 }
 .bh-dd-table td > button {

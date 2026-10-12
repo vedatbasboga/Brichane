@@ -88,9 +88,6 @@ function PlayBoard({ deal, contract, line, step, onStep }: PlayBoardProps) {
   const finished = step >= PLAY_LENGTH
   // Tamamlanan löve ortada duruyorsa o löve, değilse oynanmakta olan löve.
   const currentTrick = Math.min(state.winner ? state.completed : state.completed + 1, 13)
-  const critical = line.steps
-    .map((s, index) => ({ step: s, index }))
-    .filter(({ step: s }) => s.critical)
 
   useEffect(() => {
     if (!auto) return
@@ -145,10 +142,7 @@ function PlayBoard({ deal, contract, line, step, onStep }: PlayBoardProps) {
         <Button size="sm" variant="primary" onClick={() => onStep(step + 1)} disabled={finished}>
           {tr.play.next} ▶
         </Button>
-        <Button size="sm" onClick={() => onStep(PLAY_LENGTH)} disabled={finished}>
-          {tr.play.last} ⏭
-        </Button>
-        <Button size="sm" variant="quiet" onClick={() => setAuto(!auto)} disabled={finished}>
+        <Button size="sm" onClick={() => setAuto(!auto)} disabled={finished}>
           {auto ? tr.play.pause : tr.play.auto}
         </Button>
       </div>
@@ -196,28 +190,6 @@ function PlayBoard({ deal, contract, line, step, onStep }: PlayBoardProps) {
               text={tr.play.result(tr.seatNames[contract.declarer], line.declarerTricks, outcome)}
             />
           </p>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <span className="bh-field-label">{tr.play.criticalList}</span>
-        {critical.length === 0 ? (
-          <p className="bh-field-hint">{tr.play.noCritical}</p>
-        ) : (
-          <div className="bh-chips">
-            {critical.map(({ step: s, index }) => (
-              <button
-                key={index}
-                type="button"
-                className="bh-chip"
-                aria-pressed={step === index + 1}
-                onClick={() => onStep(index + 1)}
-              >
-                {tr.play.trickShort(Math.floor(index / 4) + 1)} · {tr.seats[s.seat]}{' '}
-                <CardLabel card={s.card} />
-              </button>
-            ))}
-          </div>
         )}
       </div>
 
