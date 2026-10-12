@@ -125,7 +125,6 @@ export const tr = {
     made: 'tam yaptı',
     over: (n: number) => `${n} fazla`,
     down: (n: number) => `${n} batık`,
-    note: 'Çift kukla oyunu kartların yerini bilerek oynar: gösterilen yol en iyi sonuca giden yollardan biridir, masadaki “doğru oyun” her zaman bu olmayabilir. Kritik hamleler, gerçekten fark yaratan kartlardır.',
     selectHint: 'Başka bir kontratı oynatmak için tablodaki bir hücreye tıklayın.',
   },
 

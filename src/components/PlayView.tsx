@@ -192,8 +192,6 @@ function PlayBoard({ deal, contract, line, step, onStep }: PlayBoardProps) {
           </p>
         )}
       </div>
-
-      <p className="bh-field-hint">{tr.play.note}</p>
     </>
   )
 }
