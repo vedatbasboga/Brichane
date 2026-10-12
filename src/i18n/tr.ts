@@ -90,13 +90,13 @@ export const tr = {
   },
 
   dd: {
-    title: 'Çift kukla analizi',
+    title: 'El analizi',
     help: 'Dört el açık ve hatasız oyunla her deklarenin her kozda yapabileceği en yüksek kontrat (–: kontrat çıkmaz). Sarı: par kontrat.',
     computing: 'Eller analiz ediliyor…',
     progress: (done: number, total: number) => `Eller analiz ediliyor: ${done}/${total}`,
     par: 'Par',
     passOut: 'Pas',
-    error: 'Çift kukla hesaplanamadı:',
+    error: 'El analiz edilemedi:',
   },
 
   play: {
