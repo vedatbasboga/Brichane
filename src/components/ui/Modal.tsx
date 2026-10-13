@@ -9,7 +9,8 @@ interface ModalProps {
   children?: ReactNode
   footer?: ReactNode
   onClose: () => void
-  size?: 'md' | 'lg' | 'xl'
+  /** `full`: bütün ekranı kaplar (sunumda yansıtılan el görünümü). */
+  size?: 'md' | 'lg' | 'xl' | 'full'
   /** Uzun formlarda alt bar kayarken görünür kalır. */
   stickyFooter?: boolean
   /** Başlıkta "Kapat" düğmesi (alt barda Vazgeç varsa gerekmez). */

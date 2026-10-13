@@ -33,7 +33,7 @@ interface DealDialogProps {
   dd?: (DdResult | undefined)[]
 }
 
-/** Seçili board'un büyük görünümü; ← → ile boardlar arasında (oyun modunda kartlar arasında) gezilir. */
+/** Seçili board'un tam ekran görünümü (sunumda yansıtılır); ← → ile boardlar arasında (oyun modunda kartlar arasında) gezilir. */
 export function DealDialog(props: DealDialogProps) {
   if (props.index === null || !props.deals[props.index]) return null
   return <DealDialogContent {...props} index={props.index} />
@@ -87,7 +87,7 @@ function DealDialogContent({
   return (
     <Modal
       title={dealCaption(deal)}
-      size="lg"
+      size="full"
       onClose={onClose}
       onKeyDown={handleKeyDown}
       footer={
@@ -101,73 +101,81 @@ function DealDialogContent({
         </div>
       }
     >
-      {activePlay ? (
-        <PlayView
-          deal={deal}
-          contract={activePlay.contract}
-          step={activePlay.step}
-          onStep={setStep}
-          onExit={() => setPlay(null)}
-        />
-      ) : (
-        <>
-          {suggested && !focusOnly && (
-            <div className="flex flex-wrap items-center gap-3">
-              <Button variant="primary" onClick={() => startPlay(suggested)}>
-                <SuitText text={tr.play.button(contractLabel(suggested))} />
-              </Button>
-              <span className="text-ink-muted text-[13px]">{tr.play.selectHint}</span>
-            </div>
+      <div className="bh-deal-layout">
+        <div className="bh-deal-main">
+          {activePlay ? (
+            <PlayView
+              deal={deal}
+              contract={activePlay.contract}
+              step={activePlay.step}
+              onStep={setStep}
+              onExit={() => setPlay(null)}
+            />
+          ) : (
+            <>
+              {suggested && !focusOnly && (
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button variant="primary" onClick={() => startPlay(suggested)}>
+                    <SuitText text={tr.play.button(contractLabel(suggested))} />
+                  </Button>
+                  <span className="text-ink-muted text-[13px]">{tr.play.selectHint}</span>
+                </div>
+              )}
+
+              <DealCard deal={deal} focusOnly={focusOnly} size="lg" />
+            </>
+          )}
+        </div>
+
+        <div className="bh-deal-side">
+          {!activePlay && (
+            <table className="bh-dd-table bh-stats">
+              <thead>
+                <tr>
+                  <th scope="col">{tr.dealView.hand}</th>
+                  <th scope="col">{tr.hcp}</th>
+                  <th scope="col">{tr.dealView.shape}</th>
+                  <th scope="col">{tr.dealView.ltc}</th>
+                  <th scope="col">{tr.dealView.controls}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visibleSeats.map((seat) => (
+                  <tr key={seat}>
+                    <th scope="row">{tr.seatNames[seat]}</th>
+                    <td>{hcp(deal.hands[seat])}</td>
+                    <td>{shapePattern(deal.hands[seat])}</td>
+                    <td>{losingTrickCount(deal.hands[seat])}</td>
+                    <td>{controls(deal.hands[seat])}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
 
-          <DealCard deal={deal} focusOnly={focusOnly} size="lg" />
+          {dd && !focusOnly && (
+            <section className="flex flex-col gap-2">
+              <h3 className="bh-heading">{tr.dd.title}</h3>
+              <p className="text-ink-muted text-[13px] leading-[18px]">{tr.dd.help}</p>
+              <div className="max-w-md">
+                <DdTable
+                  result={ddResult}
+                  size="lg"
+                  selected={activePlay?.contract}
+                  onSelect={
+                    ddResult
+                      ? (seat, strain) =>
+                          startPlay(cellContract(seat, strain, ddResult.tricks[seat][strain]))
+                      : undefined
+                  }
+                />
+              </div>
+            </section>
+          )}
 
-          <table className="bh-dd-table bh-stats">
-            <thead>
-              <tr>
-                <th scope="col">{tr.dealView.hand}</th>
-                <th scope="col">{tr.hcp}</th>
-                <th scope="col">{tr.dealView.shape}</th>
-                <th scope="col">{tr.dealView.ltc}</th>
-                <th scope="col">{tr.dealView.controls}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visibleSeats.map((seat) => (
-                <tr key={seat}>
-                  <th scope="row">{tr.seatNames[seat]}</th>
-                  <td>{hcp(deal.hands[seat])}</td>
-                  <td>{shapePattern(deal.hands[seat])}</td>
-                  <td>{losingTrickCount(deal.hands[seat])}</td>
-                  <td>{controls(deal.hands[seat])}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </>
-      )}
-
-      {dd && !focusOnly && (
-        <section className="flex flex-col gap-2">
-          <h3 className="bh-heading">{tr.dd.title}</h3>
-          <p className="text-ink-muted text-[13px] leading-[18px]">{tr.dd.help}</p>
-          <div className="max-w-md">
-            <DdTable
-              result={ddResult}
-              size="lg"
-              selected={activePlay?.contract}
-              onSelect={
-                ddResult
-                  ? (seat, strain) =>
-                      startPlay(cellContract(seat, strain, ddResult.tricks[seat][strain]))
-                  : undefined
-              }
-            />
-          </div>
-        </section>
-      )}
-
-      {renderExtra?.(deal)}
+          {renderExtra?.(deal)}
+        </div>
+      </div>
     </Modal>
   )
 }
