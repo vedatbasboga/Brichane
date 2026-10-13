@@ -32,7 +32,7 @@ export interface DdResult {
   par: DdPar
 }
 
-// DDS tablosu: resTable[koz][oyuncu], koz sırası ♠ ♥ ♦ ♣ NT, oyuncu sırası K D G B.
+// DDS tablosu: resTable[koz][oyuncu], koz sırası ♠ ♥ ♦ ♣ NT, oyuncu sırası N E S W.
 const DDS_STRAIN_ORDER: readonly Strain[] = ['S', 'H', 'D', 'C', 'N']
 
 export function tricksFromDds(resTable: readonly (readonly number[])[]): DdTricks {
@@ -46,7 +46,7 @@ export function tricksFromDds(resTable: readonly (readonly number[])[]): DdTrick
   return tricks
 }
 
-// PBN "DoubleDummyTricks" (Bridge Composer): her deklare (K D G B) için NT ♠ ♥ ♦ ♣ sırasıyla
+// PBN "DoubleDummyTricks" (Bridge Composer): her deklare (N E S W) için NT ♠ ♥ ♦ ♣ sırasıyla
 // birer onaltılık hane, toplam 20 hane. Firestore'da da bu biçimde saklanır.
 const HEX_STRAIN_ORDER: readonly Strain[] = ['N', 'S', 'H', 'D', 'C']
 

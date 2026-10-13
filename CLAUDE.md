@@ -23,6 +23,7 @@ Ağır işler (el üretimi, DDS) Web Worker'da. Veri Firestore'da, yayın Fireba
 
 - Kod (değişken, fonksiyon, dosya adları) **İngilizce**, arayüz metinleri **Türkçe**.
 - Tüm arayüz metinleri `src/i18n/tr.ts` içinde; bileşenlerde doğrudan metin yazma.
+- Koltuklar arayüzde İngilizce: N E S W / North East South West, ortaklıklar NS / EW (`design/` belgelerindeki K D G B yerine).
 - `src/engine/` React'ten tamamen bağımsız, saf TypeScript. React, DOM veya Firebase import etmez.
 - Motordaki her davranış Vitest ile test edilir (`*.test.ts`, test edilen dosyanın yanında).
 - Teknik kimlikler ASCII: paket adı, Firebase proje kimliği ve URL `brichane`; "Briçhane" yalnızca arayüzde.
@@ -46,7 +47,7 @@ Ağır işler (el üretimi, DDS) Web Worker'da. Veri Firestore'da, yayın Fireba
 - Tarifler Güney dağıtıcıymış gibi yazılır. `placement: 'balanced'` (varsayılan) dağıtımı board'un standart dağıtıcısına çevirir; konu eli dört koltuğa eşit dağılır. Konu açıklamaları bu yüzden koltuk adı değil rol kullanır ("Açan:", "ortağı:").
 - `generateDeals` reddetme örneklemesi yapar; `dealWorker.ts` bunu Web Worker'da çalıştırır.
 - `topicSuit` (konu rengi): tarifte izin verilen renklerden biri seçilir, koltukların `topicSuit` aralığı aynı renge uygulanır (takeout kontr: rakip X'te 5+, kontr eden X'te 0–1). `topicSuitHcp` o renkteki HP (Gambling 3NT: AKQ = 9+). Bir koşul açılan renge göre değişiyorsa (Michaels: minöre majörler, majöre diğer majör + minör) konu ikiye bölünür.
-- Çift kukla: `dd.ts` (modeller, DDS tablo/hex dönüşümleri, par ayrıştırma). Hesap `workers/ddsWorker.ts` (bridge-dds, WebAssembly), havuz `hooks/useDdAnalysis.ts` (en fazla 3 işçi). DDS tablo sırası ♠ ♥ ♦ ♣ NT × K D G B; gösterim ♣ ♦ ♥ ♠ NT.
+- Çift kukla: `dd.ts` (modeller, DDS tablo/hex dönüşümleri, par ayrıştırma). Hesap `workers/ddsWorker.ts` (bridge-dds, WebAssembly), havuz `hooks/useDdAnalysis.ts` (en fazla 3 işçi). DDS tablo sırası ♠ ♥ ♦ ♣ NT × N E S W; gösterim ♣ ♦ ♥ ♠ NT.
 - Oynat (çift kukla oyunu): `play.ts` saf mantık (löve kazananı, `playStateAt`, `choosePlay` — eşdeğer kartlarda çıkışta en yüksek, takipte en düşük; tek en iyi kart = kritik hamle; `defaultContract` = par). DDS ile hesap `workers/ddPlay.ts` (`SolveBoardPBN`, bütün kartlar + skor), işçide `'play'` mesajı, hook `useDdPlay`. Sonuç tablodaki löveyle aynı olmalı (`ddPlay.test.ts` gerçek DDS ile doğrular).
 - Ortak test verileri: `src/engine/testFixtures.ts`.
 
@@ -67,7 +68,7 @@ Ağır işler (el üretimi, DDS) Web Worker'da. Veri Firestore'da, yayın Fireba
 
 - Proje kimliği `brichane-0` (`.firebaserc`), Firestore `europe-west3`. Ayarlar `.env` (`VITE_FIREBASE_*`, örnek: `.env.example`).
 - Firestore'da yalnızca `sets/{id}` (+ `boardNotes/{board}`). Kurallar `firestore.rules`: okuma açık, oluşturmada şema doğrulama, güncellemede yalnızca `title/notes/archived`, **gerçek silme kapalı**: "Sil" `deleted: true` işaretler (geri alınamaz; `listSets`/`getSet` silinmişleri gizler). Auth gelince gerçek silmeye dönecek. Kural değişince `npm run deploy:rules`.
-- Çift kukla sonuçları sette `dd` (board başına 20 haneli PBN DoubleDummyTricks: K D G B × NT ♠ ♥ ♦ ♣) ve `par` ({score, contracts}) olarak; kurallar yalnızca henüz yoksa bir kez yazmaya izin verir.
+- Çift kukla sonuçları sette `dd` (board başına 20 haneli PBN DoubleDummyTricks: N E S W × NT ♠ ♥ ♦ ♣) ve `par` ({score, contracts}) olarak; kurallar yalnızca henüz yoksa bir kez yazmaya izin verir.
 - Firebase yalnızca set sayfalarında ve "Kaydet"te dinamik yüklenir (ana sayfa paketi küçük kalsın).
 - App Check: `VITE_RECAPTCHA_SITE_KEY` tanımlıysa açılır.
 - Test verisini temizlemek için (kurallar silmeye izin vermez): `firebase firestore:delete sets/<id> --recursive --force`.

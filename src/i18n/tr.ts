@@ -10,11 +10,11 @@ export const tr = {
   appName: 'Briçhane',
   tagline: 'Konuya göre briç eli üretici',
 
-  seats: { N: 'K', E: 'D', S: 'G', W: 'B' },
-  seatNames: { N: 'Kuzey', E: 'Doğu', S: 'Güney', W: 'Batı' },
-  vulnerability: { None: 'Zon yok', NS: 'KG zon', EW: 'DB zon', All: 'Herkes zon' },
+  seats: { N: 'N', E: 'E', S: 'S', W: 'W' },
+  seatNames: { N: 'North', E: 'East', S: 'South', W: 'West' },
+  vulnerability: { None: 'Zon yok', NS: 'NS zon', EW: 'EW zon', All: 'Herkes zon' },
   hcp: 'HP',
-  pairs: { NS: 'KG', EW: 'DB' },
+  pairs: { NS: 'NS', EW: 'EW' },
   suitNames: { S: 'Pik', H: 'Kupa', D: 'Karo', C: 'Sinek' },
   shapes: { balanced: 'Dengeli', 'semi-balanced': 'Yarı dengeli', unbalanced: 'Dengesiz' },
 
@@ -104,7 +104,7 @@ export const tr = {
     contract: (contract: string, declarer: string, leader: string) =>
       `${contract} · Deklare ${declarer} · Çıkış ${leader}`,
     trick: (trick: number) => `Löve ${trick} / 13`,
-    score: (ns: number, ew: number) => `KG ${ns} – DB ${ew}`,
+    score: (ns: number, ew: number) => `NS ${ns} – EW ${ew}`,
     computing: 'Oyun hesaplanıyor…',
     error: 'Oyun hesaplanamadı:',
     first: 'Başa',

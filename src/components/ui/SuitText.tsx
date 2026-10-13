@@ -4,7 +4,7 @@ import { Suit } from './Suit'
 
 const GLYPHS: Record<string, SuitCode> = { '♠': 'S', '♥': 'H', '♦': 'D', '♣': 'C' }
 
-/** Metindeki ♠ ♥ ♦ ♣ karakterlerini Suit çizimine çevirir ("4♠ KG", "5+ ♥ veya ♠"). */
+/** Metindeki ♠ ♥ ♦ ♣ karakterlerini Suit çizimine çevirir ("4♠ NS", "5+ ♥ veya ♠"). */
 export function SuitText({ text }: { text: string }) {
   return (
     <>
