@@ -11,6 +11,7 @@ import {
   pairSuitLengths,
   shapeClass,
   shapePattern,
+  suitHcp,
   suitLengths,
 } from './evaluate'
 import { parsePbnDeal, parsePbnHand as h } from './pbn'
@@ -27,6 +28,16 @@ describe('hcp', () => {
     const deal = parsePbnDeal(SAMPLE_DEAL_PBN)
     expect(SEATS.reduce((sum, seat) => sum + hcp(deal[seat]), 0)).toBe(40)
     expect(SEATS.map((seat) => hcp(deal[seat]))).toEqual([13, 7, 16, 4])
+  })
+})
+
+describe('suitHcp', () => {
+  it('counts honours in one suit only', () => {
+    const hand = h('AKQ5432.J2.Q2.K2')
+    expect(suitHcp(hand, 'S')).toBe(9)
+    expect(suitHcp(hand, 'H')).toBe(1)
+    expect(suitHcp(hand, 'D')).toBe(2)
+    expect(suitHcp(hand, 'C')).toBe(3)
   })
 })
 

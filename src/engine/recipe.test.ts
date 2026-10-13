@@ -130,6 +130,16 @@ describe('matchesRecipe', () => {
       expect(matchesRecipe(deal, recipe)).toBe(false)
     })
 
+    it('checks honour points in the chosen suit', () => {
+      // B'nin ♣'ı QJT98: 3 HP.
+      const withHcp = (range: [number, number]): Recipe => ({
+        ...base,
+        seats: { ...base.seats, W: { topicSuit: [5, 13], topicSuitHcp: range } },
+      })
+      expect(matchesRecipe(deal, withHcp([3, 3]))).toBe(true)
+      expect(matchesRecipe(deal, withHcp([4, 10]))).toBe(false)
+    })
+
     it('ignores seat topic-suit ranges when the recipe has no topic suit', () => {
       expect(
         matchesRecipe(deal, { ...base, topicSuit: undefined, seats: { N: { topicSuit: [9, 9] } } }),

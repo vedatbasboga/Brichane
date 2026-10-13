@@ -27,6 +27,12 @@ export function hcp(hand: readonly Card[]): number {
   return total
 }
 
+/** Tek bir renkteki HP (örn. sağlam renk: AKQ = 9). */
+export function suitHcp(hand: readonly Card[], suit: Suit): number {
+  const index = SUITS.indexOf(suit)
+  return hcp(hand.filter((card) => cardSuitIndex(card) === index))
+}
+
 export function suitLengths(hand: readonly Card[]): SuitLengths {
   const counts = [0, 0, 0, 0]
   for (const card of hand) counts[cardSuitIndex(card)]++

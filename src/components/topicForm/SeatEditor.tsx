@@ -5,6 +5,7 @@ import {
   LTC_BOUNDS,
   SEAT_HCP_BOUNDS,
   SHAPE_CLASSES,
+  SUIT_HCP_BOUNDS,
   emptyExcludeDraft,
   type SeatDraft,
 } from '../../data/topicDraft'
@@ -112,6 +113,13 @@ export function SeatEditor({ seat, isDealer, topicSuitEnabled, draft, onChange }
                 bounds={LENGTH_BOUNDS}
                 onChange={(topicSuit) => set({ topicSuit })}
               />
+              <RangeField
+                label={tr.editor.topicSuitHcp}
+                name={`${seatName} ${tr.editor.topicSuitHcp}`}
+                value={draft.topicSuitHcp}
+                bounds={SUIT_HCP_BOUNDS}
+                onChange={(topicSuitHcp) => set({ topicSuitHcp })}
+              />
               <Checkbox
                 checked={draft.topicSuitLongest}
                 onChange={(event) => set({ topicSuitLongest: event.target.checked })}
@@ -166,6 +174,27 @@ export function SeatEditor({ seat, isDealer, topicSuitEnabled, draft, onChange }
                         })
                       }
                     />
+                    {SUITS.map((suit) => (
+                      <RangeField
+                        key={suit}
+                        label={
+                          <>
+                            <Suit suit={suit} size={14} />
+                            {tr.suitNames[suit]}
+                          </>
+                        }
+                        name={`${seatName} ${tr.editor.exclude} ${i + 1} ${tr.suitNames[suit]}`}
+                        value={ex.suits[suit]}
+                        bounds={LENGTH_BOUNDS}
+                        onChange={(range) =>
+                          set({
+                            exclude: draft.exclude.map((e, j) =>
+                              j === i ? { ...e, suits: { ...e.suits, [suit]: range } } : e,
+                            ),
+                          })
+                        }
+                      />
+                    ))}
                     <Button
                       variant="danger"
                       size="sm"

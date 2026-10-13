@@ -23,6 +23,7 @@ export type Bounds = [number, number]
 export const SEAT_HCP_BOUNDS: Bounds = [0, 37]
 export const PAIR_HCP_BOUNDS: Bounds = [0, 40]
 export const LENGTH_BOUNDS: Bounds = [0, 13]
+export const SUIT_HCP_BOUNDS: Bounds = [0, 10]
 export const CONTROLS_BOUNDS: Bounds = [0, 12]
 export const LTC_BOUNDS: Bounds = [0, 12]
 
@@ -32,6 +33,7 @@ export interface ExcludeDraft {
   hcp: Bounds
   /** Boş = dağılım fark etmez. */
   shapes: ShapeClass[]
+  suits: Record<Suit, Bounds>
 }
 
 export interface SeatDraft {
@@ -43,6 +45,7 @@ export interface SeatDraft {
   anySuits: Suit[]
   anyLength: Bounds
   topicSuit: Bounds
+  topicSuitHcp: Bounds
   topicSuitLongest: boolean
   controls: Bounds
   ltc: Bounds
@@ -77,8 +80,32 @@ const isFull = (value: Bounds, bounds: Bounds) => value[0] <= bounds[0] && value
 const orUndefined = (value: Bounds, bounds: Bounds): Range | undefined =>
   isFull(value, bounds) ? undefined : [value[0], value[1]]
 
+const fullSuits = (): Record<Suit, Bounds> => ({
+  S: full(LENGTH_BOUNDS),
+  H: full(LENGTH_BOUNDS),
+  D: full(LENGTH_BOUNDS),
+  C: full(LENGTH_BOUNDS),
+})
+
+const suitsToDraft = (suits: Partial<Record<Suit, Range>> | undefined): Record<Suit, Bounds> => ({
+  S: toBounds(suits?.S, LENGTH_BOUNDS),
+  H: toBounds(suits?.H, LENGTH_BOUNDS),
+  D: toBounds(suits?.D, LENGTH_BOUNDS),
+  C: toBounds(suits?.C, LENGTH_BOUNDS),
+})
+
+/** Tam aralıklar atılır; hiç koşul kalmazsa undefined. */
+function draftToSuits(suits: Record<Suit, Bounds>): Partial<Record<Suit, Range>> | undefined {
+  const result: Partial<Record<Suit, Range>> = {}
+  for (const suit of SUITS) {
+    const range = orUndefined(suits[suit], LENGTH_BOUNDS)
+    if (range) result[suit] = range
+  }
+  return Object.keys(result).length ? result : undefined
+}
+
 export function emptyExcludeDraft(): ExcludeDraft {
-  return { hcp: full(SEAT_HCP_BOUNDS), shapes: [] }
+  return { hcp: full(SEAT_HCP_BOUNDS), shapes: [], suits: fullSuits() }
 }
 
 export function emptySeatDraft(): SeatDraft {
@@ -86,15 +113,11 @@ export function emptySeatDraft(): SeatDraft {
     enabled: false,
     hcp: full(SEAT_HCP_BOUNDS),
     shapes: [],
-    suits: {
-      S: full(LENGTH_BOUNDS),
-      H: full(LENGTH_BOUNDS),
-      D: full(LENGTH_BOUNDS),
-      C: full(LENGTH_BOUNDS),
-    },
+    suits: fullSuits(),
     anySuits: [],
     anyLength: full(LENGTH_BOUNDS),
     topicSuit: full(LENGTH_BOUNDS),
+    topicSuitHcp: full(SUIT_HCP_BOUNDS),
     topicSuitLongest: false,
     controls: full(CONTROLS_BOUNDS),
     ltc: full(LTC_BOUNDS),
@@ -144,21 +167,18 @@ function seatToDraft(c: SeatConstraint | undefined): SeatDraft {
     enabled: true,
     hcp: toBounds(c.hcp, SEAT_HCP_BOUNDS),
     shapes: shapesFrom(c.shape),
-    suits: {
-      S: toBounds(c.suits?.S, LENGTH_BOUNDS),
-      H: toBounds(c.suits?.H, LENGTH_BOUNDS),
-      D: toBounds(c.suits?.D, LENGTH_BOUNDS),
-      C: toBounds(c.suits?.C, LENGTH_BOUNDS),
-    },
+    suits: suitsToDraft(c.suits),
     anySuits: c.anySuit ? [...c.anySuit.suits] : [],
     anyLength: toBounds(c.anySuit?.length, LENGTH_BOUNDS),
     topicSuit: toBounds(c.topicSuit, LENGTH_BOUNDS),
+    topicSuitHcp: toBounds(c.topicSuitHcp, SUIT_HCP_BOUNDS),
     topicSuitLongest: c.topicSuitLongest === true,
     controls: toBounds(c.controls, CONTROLS_BOUNDS),
     ltc: toBounds(c.ltc, LTC_BOUNDS),
     exclude: (c.exclude ?? []).map((ex) => ({
       hcp: toBounds(ex.hcp, SEAT_HCP_BOUNDS),
       shapes: shapesFrom(ex.shape),
+      suits: suitsToDraft(ex.suits),
     })),
   }
 }
@@ -169,12 +189,8 @@ function draftToSeat(d: SeatDraft): SeatConstraint {
   if (hcp) c.hcp = hcp
   const shape = shapeFrom(d.shapes)
   if (shape) c.shape = shape
-  const suits: Partial<Record<Suit, Range>> = {}
-  for (const suit of SUITS) {
-    const range = orUndefined(d.suits[suit], LENGTH_BOUNDS)
-    if (range) suits[suit] = range
-  }
-  if (Object.keys(suits).length) c.suits = suits
+  const suits = draftToSuits(d.suits)
+  if (suits) c.suits = suits
   if (d.anySuits.length) {
     c.anySuit = {
       suits: SUITS.filter((s) => d.anySuits.includes(s)),
@@ -183,6 +199,8 @@ function draftToSeat(d: SeatDraft): SeatConstraint {
   }
   const topicSuit = orUndefined(d.topicSuit, LENGTH_BOUNDS)
   if (topicSuit) c.topicSuit = topicSuit
+  const topicSuitHcp = orUndefined(d.topicSuitHcp, SUIT_HCP_BOUNDS)
+  if (topicSuitHcp) c.topicSuitHcp = topicSuitHcp
   if (d.topicSuitLongest) c.topicSuitLongest = true
   const controls = orUndefined(d.controls, CONTROLS_BOUNDS)
   if (controls) c.controls = controls
@@ -195,6 +213,8 @@ function draftToSeat(d: SeatDraft): SeatConstraint {
       if (exHcp) e.hcp = exHcp
       const exShape = shapeFrom(ex.shapes)
       if (exShape) e.shape = exShape
+      const exSuits = draftToSuits(ex.suits)
+      if (exSuits) e.suits = exSuits
       return e
     })
     // Boş hariç tutma her eli dışlar; anlamsız olduğu için atılır.
@@ -285,14 +305,26 @@ export function validateDraft(draft: TopicDraft): string[] {
     for (const suit of SUITS) checkRange(where, tr.suitNames[suit], d.suits[suit])
     checkRange(where, tr.editor.anySuit, d.anyLength)
     checkRange(where, tr.editor.topicSuitLength, d.topicSuit)
+    checkRange(where, tr.editor.topicSuitHcp, d.topicSuitHcp)
     checkRange(where, tr.editor.controls, d.controls)
     checkRange(where, tr.editor.ltc, d.ltc)
-    d.exclude.forEach((ex) => checkRange(where, tr.editor.exclude, ex.hcp))
+    d.exclude.forEach((ex) => {
+      checkRange(where, tr.editor.exclude, ex.hcp)
+      for (const suit of SUITS) {
+        checkRange(where, `${tr.editor.exclude} ${tr.suitNames[suit]}`, ex.suits[suit])
+      }
+    })
     const minSum = SUITS.reduce((sum, suit) => sum + d.suits[suit][0], 0)
     const maxSum = SUITS.reduce((sum, suit) => sum + d.suits[suit][1], 0)
     if (minSum > 13) errors.push(e.suitMinSum(where))
     if (maxSum < 13) errors.push(e.suitMaxSum(where))
-    if (!isFull(d.topicSuit, LENGTH_BOUNDS) || d.topicSuitLongest) usesTopicSuit = true
+    if (
+      !isFull(d.topicSuit, LENGTH_BOUNDS) ||
+      !isFull(d.topicSuitHcp, SUIT_HCP_BOUNDS) ||
+      d.topicSuitLongest
+    ) {
+      usesTopicSuit = true
+    }
   }
   for (const p of PAIRS) {
     const d = draft.pairs[p]

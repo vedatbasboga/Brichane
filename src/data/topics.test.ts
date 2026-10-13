@@ -1,11 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import {
   SUITS,
+  controls,
   generateDeals,
   hcp,
+  losingTrickCount,
   rotateSeat,
   shapeClass,
+  suitHcp,
   suitLengths,
+  type Deal,
+  type GeneratedDeal,
   type Hand,
   type Suit,
 } from '../engine'
@@ -129,14 +134,227 @@ describe('conventions after the opening', () => {
   })
 })
 
+/** Konunun 200 eli; `hand(deal, n)` dealer'dan saat yönünde n. koltuğun eli. */
+function sample(id: string): GeneratedDeal[] {
+  const topic = DEFAULT_TOPICS.find((t) => t.id === id)!
+  return generateDeals({ recipe: topic, count: 200, seed: id }).deals
+}
+
+function hand(deal: { dealer: GeneratedDeal['dealer']; hands: Deal }, offset: number): Hand {
+  return deal.hands[rotateSeat(deal.dealer, offset)]
+}
+
+const MAJORS: readonly Suit[] = ['S', 'H']
+const MINORS: readonly Suit[] = ['D', 'C']
+
+describe('opening conventions', () => {
+  it('Walsh: 1♣ opener; responder below game force with 4+♦ and a 4-card major', () => {
+    for (const deal of sample('walsh')) {
+      const opener = suitLengths(hand(deal, 0))
+      const responder = hand(deal, 2)
+      const lengths = suitLengths(responder)
+      expect(opener.C).toBeGreaterThanOrEqual(3)
+      expect(opener.D).toBeLessThanOrEqual(3)
+      expect(Math.max(opener.S, opener.H)).toBeLessThanOrEqual(4)
+      expect(hcp(responder)).toBeGreaterThanOrEqual(6)
+      expect(hcp(responder)).toBeLessThanOrEqual(11)
+      expect(lengths.D).toBeGreaterThanOrEqual(4)
+      expect(Math.max(lengths.S, lengths.H)).toBe(4)
+    }
+  })
+
+  it('Namyats: a strong 7–8 card major with 4 losers', () => {
+    for (const deal of sample('namyats')) {
+      const opener = hand(deal, 0)
+      const major = openingSuit(opener)
+      expect(MAJORS).toContain(major)
+      expect(suitLengths(opener)[major]).toBeGreaterThanOrEqual(7)
+      expect(suitLengths(opener)[major]).toBeLessThanOrEqual(8)
+      expect(suitHcp(opener, major)).toBeGreaterThanOrEqual(7)
+      expect(losingTrickCount(opener)).toBe(4)
+    }
+  })
+
+  it('Gambling 3NT: a solid 7–8 card minor and no outside ace or king', () => {
+    for (const deal of sample('gambling-3nt')) {
+      const opener = hand(deal, 0)
+      const minor = openingSuit(opener)
+      expect(MINORS).toContain(minor)
+      expect(suitLengths(opener)[minor]).toBeGreaterThanOrEqual(7)
+      expect(suitHcp(opener, minor)).toBeGreaterThanOrEqual(9)
+      expect(controls(opener)).toBe(3)
+    }
+  })
+})
+
+describe('after a notrump opening', () => {
+  it('Texas transfer: 1NT opposite a 6–7 card major with game but no slam values', () => {
+    for (const deal of sample('texas-transfer')) {
+      const responder = hand(deal, 2)
+      const lengths = suitLengths(responder)
+      expect(hcp(hand(deal, 0))).toBeGreaterThanOrEqual(15)
+      expect(Math.max(lengths.S, lengths.H)).toBeGreaterThanOrEqual(6)
+      expect(hcp(responder)).toBeGreaterThanOrEqual(10)
+      expect(hcp(responder)).toBeLessThanOrEqual(14)
+    }
+  })
+
+  it('Puppet Stayman: 2NT with a 4–5 card major opposite 3–4 cards in a major', () => {
+    for (const deal of sample('puppet-stayman')) {
+      const opener = hand(deal, 0)
+      const responder = suitLengths(hand(deal, 2))
+      expect(hcp(opener)).toBeGreaterThanOrEqual(20)
+      expect(shapeClass(opener)).toBe('balanced')
+      const openerLengths = suitLengths(opener)
+      expect(Math.max(openerLengths.S, openerLengths.H)).toBeGreaterThanOrEqual(4)
+      expect(Math.max(responder.S, responder.H)).toBeGreaterThanOrEqual(3)
+      expect(Math.max(responder.S, responder.H)).toBeLessThanOrEqual(4)
+    }
+  })
+})
+
+describe('after a suit opening', () => {
+  it('Trial bid: 1M opener with 6 losers, responder a simple raise', () => {
+    for (const deal of sample('trial-bid')) {
+      const opener = hand(deal, 0)
+      const responder = hand(deal, 2)
+      const major = openingSuit(opener)
+      expect(MAJORS).toContain(major)
+      expect(losingTrickCount(opener)).toBe(6)
+      expect(hcp(responder)).toBeGreaterThanOrEqual(6)
+      expect(hcp(responder)).toBeLessThanOrEqual(9)
+      expect(suitLengths(responder)[major]).toBeGreaterThanOrEqual(3)
+    }
+  })
+
+  it('Wolff sign-off: 18–19 balanced minor opener, weak responder with a 5–6 card major', () => {
+    for (const deal of sample('wolff-sign-off')) {
+      const opener = hand(deal, 0)
+      const responder = hand(deal, 2)
+      const major = openingSuit(responder)
+      expect(hcp(opener)).toBeGreaterThanOrEqual(18)
+      expect(hcp(opener)).toBeLessThanOrEqual(19)
+      expect(shapeClass(opener)).toBe('balanced')
+      expect(Math.max(suitLengths(opener).S, suitLengths(opener).H)).toBeLessThanOrEqual(3)
+      expect(MAJORS).toContain(major)
+      expect(hcp(responder)).toBeLessThanOrEqual(7)
+    }
+  })
+})
+
+describe('overcalls of 1NT', () => {
+  const nonBalancedWithLongSuit = (id: string) => {
+    for (const deal of sample(id)) {
+      const opener = hand(deal, 0)
+      const overcaller = hand(deal, 1)
+      expect(hcp(opener)).toBeGreaterThanOrEqual(15)
+      expect(shapeClass(opener)).toBe('balanced')
+      expect(shapeClass(overcaller)).not.toBe('balanced')
+      expect(Math.max(...Object.values(suitLengths(overcaller)))).toBeGreaterThanOrEqual(5)
+    }
+  }
+
+  it('Cappelletti: one-suiter or 5-4 two-suiter, but no 5-4 in the minors only', () => {
+    nonBalancedWithLongSuit('cappelletti')
+    for (const deal of sample('cappelletti')) {
+      const lengths = suitLengths(hand(deal, 1))
+      const minorsOnly54 =
+        Math.max(lengths.S, lengths.H) <= 3 &&
+        [lengths.D, lengths.C].sort().join() === [4, 5].join()
+      expect(minorsOnly54).toBe(false)
+    }
+  })
+
+  it('Multi-Landy: a 5+ major, not balanced', () => {
+    nonBalancedWithLongSuit('multi-landy')
+    for (const deal of sample('multi-landy')) {
+      const lengths = suitLengths(hand(deal, 1))
+      expect(Math.max(lengths.S, lengths.H)).toBeGreaterThanOrEqual(5)
+    }
+  })
+
+  it('DONT: one-suiter or two-suiter, not balanced', () => {
+    nonBalancedWithLongSuit('dont')
+  })
+
+  it('Landy: both majors, at least 5-4', () => {
+    for (const deal of sample('landy')) {
+      const lengths = suitLengths(hand(deal, 1))
+      expect(Math.min(lengths.S, lengths.H)).toBeGreaterThanOrEqual(4)
+      expect(Math.max(lengths.S, lengths.H)).toBeGreaterThanOrEqual(5)
+    }
+  })
+})
+
+describe('two-suited overcalls show the right suits for the opened suit', () => {
+  const twoSuits = (id: string, expected: (opened: Suit) => readonly Suit[][]) => {
+    for (const deal of sample(id)) {
+      const opened = openingSuit(hand(deal, 0))
+      const lengths = suitLengths(hand(deal, 1))
+      const fiveCardSuits = SUITS.filter((suit) => lengths[suit] >= 5)
+      // Beklenen renk çiftlerinden biri 5-5 olmalı.
+      expect(expected(opened).some((pair) => pair.every((s) => fiveCardSuits.includes(s)))).toBe(
+        true,
+      )
+    }
+  }
+
+  it('Michaels over a minor: both majors', () => {
+    twoSuits('michaels-minor', (opened) => {
+      expect(MINORS).toContain(opened)
+      return [['S', 'H']]
+    })
+  })
+
+  it('Michaels over a major: the other major and a minor', () => {
+    twoSuits('michaels-major', (opened) => {
+      expect(MAJORS).toContain(opened)
+      const other = opened === 'S' ? 'H' : 'S'
+      return [
+        [other, 'D'],
+        [other, 'C'],
+      ]
+    })
+  })
+
+  it('Unusual 2NT over a minor: hearts and the other minor', () => {
+    twoSuits('unusual-nt-minor', (opened) => {
+      expect(MINORS).toContain(opened)
+      return [['H', opened === 'C' ? 'D' : 'C']]
+    })
+  })
+
+  it('Unusual 2NT over a major: both minors', () => {
+    twoSuits('unusual-nt-major', (opened) => {
+      expect(MAJORS).toContain(opened)
+      return [['D', 'C']]
+    })
+  })
+})
+
+describe('slam', () => {
+  it('Gerber: 1NT opposite a balanced 16–19', () => {
+    for (const deal of sample('gerber')) {
+      const responder = hand(deal, 2)
+      expect(hcp(hand(deal, 0))).toBeGreaterThanOrEqual(15)
+      expect(hcp(responder)).toBeGreaterThanOrEqual(16)
+      expect(hcp(responder)).toBeLessThanOrEqual(19)
+      expect(shapeClass(responder)).toBe('balanced')
+    }
+  })
+})
+
 describe('groupByCategory', () => {
   it('groups topics keeping first-seen order', () => {
     const groups = groupByCategory(DEFAULT_TOPICS, (topic) => topic.category)
     expect(groups.map(([category]) => category)).toEqual([
       'Açılışlar',
-      '1NT sonrası',
-      'Minör açılış sonrası',
+      'Açılış konvansiyonları',
+      'Sanzatu açılışı sonrası',
+      'Açılış sonrası',
       'Rekabet',
+      "1NT'ye müdahale",
+      'İki renkli müdahale',
       'Şlem',
       'Oyun',
     ])

@@ -225,6 +225,7 @@ export const tr = {
     anySuitLength: 'Uzunluğu',
     topicSuitLength: 'Konu rengindeki uzunluk',
     topicSuitLongest: 'Konu rengi bu elin açacağı renk (en uzun; eşitse yüksek renk)',
+    topicSuitHcp: 'Konu rengindeki HP (örn. AKQ = 9)',
     advanced: 'Gelişmiş',
     controls: 'Kontrol (A=2, K=1)',
     ltc: 'Kaybeden löve (LTC)',

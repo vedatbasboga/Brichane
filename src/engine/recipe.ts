@@ -16,6 +16,7 @@ import {
   pairHcp,
   pairSuitLengths,
   shapeClass,
+  suitHcp,
   suitLengths,
   type ShapeClass,
 } from './evaluate'
@@ -40,6 +41,8 @@ export interface SeatConstraint {
   ltc?: Range
   /** Konu rengindeki uzunluk (tarifte `topicSuit` seçiliyse). */
   topicSuit?: Range
+  /** Konu rengindeki HP (örn. sağlam renk: AKQ = 9+). */
+  topicSuitHcp?: Range
   /** Konu rengi bu elin açacağı renk olmalı: en uzun renk, eşitlikte yüksek renk. */
   topicSuitLongest?: boolean
   /** El bunlardan hiçbirine uymamalı (örn. minör açılış: "1NT eli değil"). */
@@ -109,6 +112,8 @@ export function matchesSeat(hand: readonly Card[], c: SeatConstraint, topicSuit?
     }
     if (topicSuit && topicRange && !inRange(lengths[topicSuit], topicRange)) return false
   }
+  if (topicSuit && c.topicSuitHcp && !inRange(suitHcp(hand, topicSuit), c.topicSuitHcp))
+    return false
   if (c.topicSuitLongest && topicSuit && !isOpeningSuit(suitLengths(hand), topicSuit)) return false
   if (c.shape && !matchesShape(shapeClass(hand), c.shape)) return false
   if (c.controls && !inRange(controls(hand), c.controls)) return false

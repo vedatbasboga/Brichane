@@ -50,8 +50,26 @@ describe('recipe ↔ draft', () => {
   it('drops empty exclusions', () => {
     const draft = namedDraft()
     draft.seats.S.enabled = true
-    draft.seats.S.exclude = [emptyExcludeDraft(), { hcp: [15, 17], shapes: ['balanced'] }]
+    draft.seats.S.exclude = [
+      emptyExcludeDraft(),
+      { ...emptyExcludeDraft(), hcp: [15, 17], shapes: ['balanced'] },
+    ]
     expect(draftToRecipe(draft).seats.S?.exclude).toEqual([{ hcp: [15, 17], shape: 'balanced' }])
+  })
+
+  it('keeps suit lengths inside exclusions and the topic-suit honour range', () => {
+    const draft = namedDraft()
+    draft.topicSuits = ['C', 'D']
+    draft.seats.S.enabled = true
+    draft.seats.S.topicSuitHcp = [9, 10]
+    const exclusion = emptyExcludeDraft()
+    exclusion.suits.C = [0, 4]
+    exclusion.suits.D = [0, 4]
+    draft.seats.S.exclude = [exclusion]
+    expect(draftToRecipe(draft).seats.S).toEqual({
+      topicSuitHcp: [9, 10],
+      exclude: [{ suits: { D: [0, 4], C: [0, 4] } }],
+    })
   })
 
   it('only writes a fit when its length is constrained', () => {

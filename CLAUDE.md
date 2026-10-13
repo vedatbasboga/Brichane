@@ -45,7 +45,7 @@ Ağır işler (el üretimi, DDS) Web Worker'da. Veri Firestore'da, yayın Fireba
 - Tarif (`Recipe`) modeli `recipe.ts` içinde; koltuk ve ortaklık kısıtları, `anySuit` ("♥ veya ♠ 5+"), `exclude` ("1NT eli değil"), `fit`.
 - Tarifler Güney dağıtıcıymış gibi yazılır. `placement: 'balanced'` (varsayılan) dağıtımı board'un standart dağıtıcısına çevirir; konu eli dört koltuğa eşit dağılır. Konu açıklamaları bu yüzden koltuk adı değil rol kullanır ("Açan:", "ortağı:").
 - `generateDeals` reddetme örneklemesi yapar; `dealWorker.ts` bunu Web Worker'da çalıştırır.
-- `topicSuit` (konu rengi): tarifte izin verilen renklerden biri seçilir, koltukların `topicSuit` aralığı aynı renge uygulanır (takeout kontr: rakip X'te 5+, kontr eden X'te 0–1).
+- `topicSuit` (konu rengi): tarifte izin verilen renklerden biri seçilir, koltukların `topicSuit` aralığı aynı renge uygulanır (takeout kontr: rakip X'te 5+, kontr eden X'te 0–1). `topicSuitHcp` o renkteki HP (Gambling 3NT: AKQ = 9+). Bir koşul açılan renge göre değişiyorsa (Michaels: minöre majörler, majöre diğer majör + minör) konu ikiye bölünür.
 - Çift kukla: `dd.ts` (modeller, DDS tablo/hex dönüşümleri, par ayrıştırma). Hesap `workers/ddsWorker.ts` (bridge-dds, WebAssembly), havuz `hooks/useDdAnalysis.ts` (en fazla 3 işçi). DDS tablo sırası ♠ ♥ ♦ ♣ NT × K D G B; gösterim ♣ ♦ ♥ ♠ NT.
 - Oynat (çift kukla oyunu): `play.ts` saf mantık (löve kazananı, `playStateAt`, `choosePlay` — eşdeğer kartlarda çıkışta en yüksek, takipte en düşük; tek en iyi kart = kritik hamle; `defaultContract` = par). DDS ile hesap `workers/ddPlay.ts` (`SolveBoardPBN`, bütün kartlar + skor), işçide `'play'` mesajı, hook `useDdPlay`. Sonuç tablodaki löveyle aynı olmalı (`ddPlay.test.ts` gerçek DDS ile doğrular).
 - Ortak test verileri: `src/engine/testFixtures.ts`.
@@ -53,6 +53,7 @@ Ağır işler (el üretimi, DDS) Web Worker'da. Veri Firestore'da, yayın Fireba
 ## Konular (`src/data/`)
 
 - **Kullanıcılar konu yönetmez.** Hazır konu listesi `topics.ts` içinde sabit; yeni konuyu geliştirici ekler. Konular için Firestore yok.
+- Hazır konular özel dağılım formunda kayıpsız açılabilmeli (`topicDraft.test.ts` gidiş-dönüş testi): tarife yeni alan eklenirse `topicDraft.ts` ve `SeatEditor` da güncellenir.
 - Ana sayfadaki seçicide "Özel dağılım…" (`CUSTOM_TOPIC_ID`) → `CustomTopicDialog` + `TopicForm`; anlık kullanılır, kaydedilmez.
 - `topicDraft.ts`: form modeli (tam aralık = koşul yok) ↔ `Recipe` dönüşümü ve doğrulama.
 - Bir sete kaydederken tarifin kopyası da saklanmalı (özel dağılımın kalıcı bir kaydı yok).
