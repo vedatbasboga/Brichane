@@ -81,7 +81,7 @@ describe('competitive topics use the suit the opponent actually opens', () => {
 })
 
 describe('conventions after the opening', () => {
-  it('Lebensohl: 1NT, a 2♦/2♥/2♠ overcall and a responder who has something to bid', () => {
+  it('Lebensohl (basic): 1NT, a 2♦/2♥/2♠ overcall; responder has a 6-card suit, weak or game-forcing', () => {
     const topic = DEFAULT_TOPICS.find((t) => t.id === 'lebensohl')!
     const { deals } = generateDeals({ recipe: topic, count: 200, seed: 'lebensohl' })
     for (const deal of deals) {
@@ -95,14 +95,16 @@ describe('conventions after the opening', () => {
       expect(overcalled).not.toBe('C')
       expect(suitLengths(overcaller)[overcalled]).toBeGreaterThanOrEqual(5)
       expect(hcp(overcaller)).toBeGreaterThanOrEqual(8)
-      expect(hcp(overcaller)).toBeLessThanOrEqual(16)
+      expect(hcp(overcaller)).toBeLessThanOrEqual(15)
       const lengths = suitLengths(responder)
-      expect(lengths[overcalled]).toBeLessThanOrEqual(4)
-      expect(hcp(responder) >= 10 || shapeClass(responder) !== 'balanced').toBe(true)
+      const points = hcp(responder)
+      expect(Math.max(...Object.values(lengths))).toBeGreaterThanOrEqual(6)
+      expect(lengths[overcalled]).toBeLessThanOrEqual(2)
+      expect(points <= 7 || (points >= 10 && points <= 15)).toBe(true)
     }
   })
 
-  it('Check Back Stayman: 1m – 1M – 1NT (12–14) with a 5+ major responder', () => {
+  it('Check Back Stayman (basic): 1m – 1M – 1NT (12–14), responder 11–15 with exactly five in the major', () => {
     const topic = DEFAULT_TOPICS.find((t) => t.id === 'check-back-stayman')!
     const { deals } = generateDeals({ recipe: topic, count: 200, seed: 'cbs' })
     for (const deal of deals) {
@@ -113,12 +115,16 @@ describe('conventions after the opening', () => {
       expect(hcp(opener)).toBeLessThanOrEqual(14)
       expect(shapeClass(opener)).toBe('balanced')
       expect(openerLengths.S).toBeLessThanOrEqual(3)
-      expect(openerLengths.H).toBeLessThanOrEqual(4)
+      expect(openerLengths.H).toBeLessThanOrEqual(3)
       const major = openingSuit(responder)
       expect(['S', 'H']).toContain(major)
-      expect(suitLengths(responder)[major]).toBeGreaterThanOrEqual(5)
-      expect(openerLengths[major]).toBeLessThanOrEqual(3)
+      const responderLengths = suitLengths(responder)
+      expect(responderLengths[major]).toBe(5)
+      expect(responderLengths[major === 'S' ? 'H' : 'S']).toBeLessThanOrEqual(3)
+      expect(responderLengths.D).toBeLessThanOrEqual(4)
+      expect(responderLengths.C).toBeLessThanOrEqual(4)
       expect(hcp(responder)).toBeGreaterThanOrEqual(11)
+      expect(hcp(responder)).toBeLessThanOrEqual(15)
     }
   })
 })

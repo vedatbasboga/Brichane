@@ -89,38 +89,52 @@ export const DEFAULT_TOPICS: Recipe[] = [
     seats: { S: ONE_NT_OPENER, N: { anySuit: { suits: ['S', 'H'], length: [5, 13] } } },
   },
   {
-    // 1NT – (2♦/2♥/2♠) – ?: 2NT 3♣ ister; zayıf el renginde durur, güçlü el kesere göre konuşur.
+    // Temel Lebensohl (öğretim sürümü): 1NT – (2♦/2♥/2♠) – ?
+    // Cevapçının hep 6'lı rengi var: zayıfsa (0–7) rengini oynar — 2'de söylenemiyorsa
+    // 2NT → 3♣ → pas/düzelt; manş gücündeyse (10–15) rengini 3. seviyede söyler.
+    // Davet (8–9), dengeli manş eli (stoper sorusu: 3NT hızlı/yavaş), cezalı kontr
+    // (rakip renginde 3+) ve şlem elleri ileri konu olduğu için üretilmez.
     // 2♣ müdahalesi yok sayılır (1NT – Pas gibi), bu yüzden konu rengi ♦ ♥ ♠.
     id: 'lebensohl',
     name: 'Lebensohl',
     category: '1NT sonrası',
     description:
-      'Açan: 1NT eli; rakip 2♦/2♥/2♠ ile girer (8–16 HP, 5+); ortağı: 10+ HP ya da zayıf ve dağılımlı (uzun renkli), rakibin renginde en fazla 4.',
+      "Açan: 1NT eli; rakip 2♦/2♥/2♠ ile girer (8–15 HP, 5+); ortağı: 6'lı renk, rakibin renginde en fazla 2; ya zayıf (0–7 HP) ya da manş gücünde (10–15 HP).",
     dealer: 'S',
     topicSuit: { suits: ['S', 'H', 'D'] },
     seats: {
       S: ONE_NT_OPENER,
-      W: { hcp: [8, 16], topicSuit: [5, 13], topicSuitLongest: true },
+      W: { hcp: [8, 15], topicSuit: [5, 13], topicSuitLongest: true },
       N: {
-        topicSuit: [0, 4],
-        // Pas geçecek el olmasın: ya zon gücü ya da oynamak istediği uzun renk (dengeli değil).
-        exclude: [{ hcp: [0, 9], shape: 'balanced' }],
+        hcp: [0, 15],
+        anySuit: { suits: ['S', 'H', 'D', 'C'], length: [6, 13] },
+        topicSuit: [0, 2],
+        // Davet aralığı: 2NT'den sonra rakibin renginden yüksek renk gibi ince ayrımlar.
+        exclude: [{ hcp: [8, 9] }],
       },
     },
   },
   {
-    // 1♣/1♦ – 1M – 1NT – 2♣: ortağın majöründe 3'lü destek ve açanın min/max'ı sorulur.
+    // Temel Check Back Stayman (öğretim sürümü): 1♣/1♦ – 1M – 1NT – 2♣
+    // Cevapçı tam 5'li majörüyle 3'lü destek arar; açan 3'lü destekle 2M, yoksa 2♦ der.
+    // Diğer majörde 4'lü (açanın 4'lü ♥'ı, cevapçının 5-4 majörü), ikinci 5'li renk, 6'lı majör
+    // ve şlem elleri ileri konu olduğu için üretilmez.
     id: 'check-back-stayman',
     name: 'Check Back Stayman',
     category: 'Minör açılış sonrası',
     description:
-      'Açan: 1♣/1♦ açıp 1NT ile tekrar eder (12–14 HP, dengeli, ♠ ve ortağın majöründe en fazla 3); ortağı: 11+ HP, 5+ majör.',
+      "Açan: 1♣/1♦ açıp 1NT ile tekrar eder (12–14 HP, dengeli, iki majörde de en fazla 3); ortağı: 11–15 HP, tam 5'li majör, diğer majörde en fazla 3, minörlerde en fazla 4.",
     dealer: 'S',
     topicSuit: { suits: ['S', 'H'] },
     seats: {
-      // ♠ en fazla 3: 4'lü pikle 1♥ cevabına 1♠ denirdi; ♥ 4'lü olabilir (1♠ cevabından sonra 1NT).
-      S: { hcp: [12, 14], shape: 'balanced', suits: { S: [0, 3], H: [0, 4] }, topicSuit: [0, 3] },
-      N: { hcp: [11, 37], topicSuit: [5, 13], topicSuitLongest: true },
+      S: { hcp: [12, 14], shape: 'balanced', suits: { S: [0, 3], H: [0, 3] } },
+      N: {
+        hcp: [11, 15],
+        suits: { D: [0, 4], C: [0, 4] },
+        // Konu majörü tam 5'li olduğundan diğer majör en fazla 3'lü olur.
+        anySuit: { suits: ['S', 'H'], length: [0, 3] },
+        topicSuit: [5, 5],
+      },
     },
   },
   {
