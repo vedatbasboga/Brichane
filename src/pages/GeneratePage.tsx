@@ -13,7 +13,6 @@ import { Checkbox } from '../components/ui/Checkbox'
 import { Field, Input } from '../components/ui/Field'
 import { Notice } from '../components/ui/Notice'
 import { Progress } from '../components/ui/Progress'
-import { SuitText } from '../components/ui/SuitText'
 import { buildNewSet, defaultSetTitle } from '../data/savedSet'
 import { parseShareParams, toShareParams, type ShareWarning } from '../data/shareLink'
 import { draftToRecipe, recipeToDraft, type TopicDraft } from '../data/topicDraft'
@@ -191,7 +190,7 @@ export function GeneratePage() {
                 value={isCustom ? CUSTOM_TOPIC_ID : preset.id}
                 onChange={handleTopicChange}
               />
-              {isCustom ? (
+              {isCustom && (
                 <p className="bh-field-hint">
                   {tr.generate.customSummary}{' '}
                   <button
@@ -202,12 +201,6 @@ export function GeneratePage() {
                     {tr.generate.customEdit}
                   </button>
                 </p>
-              ) : (
-                preset.description && (
-                  <p className="bh-field-hint">
-                    <SuitText text={preset.description} />
-                  </p>
-                )
               )}
             </div>
 

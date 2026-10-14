@@ -128,54 +128,52 @@ function DealDialogContent({
         </div>
 
         <div className="bh-deal-side">
-          {!activePlay && (
-            <table className="bh-dd-table bh-stats">
-              <thead>
-                <tr>
-                  <th scope="col">{tr.dealView.hand}</th>
-                  <th scope="col">{tr.hcp}</th>
-                  <th scope="col">{tr.dealView.shape}</th>
-                  <th scope="col">{tr.dealView.ltc}</th>
-                  <th scope="col">{tr.dealView.controls}</th>
+          <table className="bh-dd-table bh-stats">
+            <thead>
+              <tr>
+                <th scope="col">{tr.dealView.hand}</th>
+                <th scope="col">{tr.hcp}</th>
+                <th scope="col">{tr.dealView.shape}</th>
+                <th scope="col">{tr.dealView.ltc}</th>
+                <th scope="col">{tr.dealView.controls}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visibleSeats.map((seat) => (
+                <tr key={seat}>
+                  <th scope="row">{tr.seatNames[seat]}</th>
+                  <td>{hcp(deal.hands[seat])}</td>
+                  <td>{shapePattern(deal.hands[seat])}</td>
+                  <td>{losingTrickCount(deal.hands[seat])}</td>
+                  <td>{controls(deal.hands[seat])}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {visibleSeats.map((seat) => (
-                  <tr key={seat}>
-                    <th scope="row">{tr.seatNames[seat]}</th>
-                    <td>{hcp(deal.hands[seat])}</td>
-                    <td>{shapePattern(deal.hands[seat])}</td>
-                    <td>{losingTrickCount(deal.hands[seat])}</td>
-                    <td>{controls(deal.hands[seat])}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-
-          {dd && !focusOnly && (
-            <section className="flex flex-col gap-2">
-              <h3 className="bh-heading">{tr.dd.title}</h3>
-              <p className="text-ink-muted text-[13px] leading-[18px]">{tr.dd.help}</p>
-              <div className="max-w-md">
-                <DdTable
-                  result={ddResult}
-                  size="lg"
-                  selected={activePlay?.contract}
-                  onSelect={
-                    ddResult
-                      ? (seat, strain) =>
-                          startPlay(cellContract(seat, strain, ddResult.tricks[seat][strain]))
-                      : undefined
-                  }
-                />
-              </div>
-            </section>
-          )}
+              ))}
+            </tbody>
+          </table>
 
           {renderExtra?.(deal)}
         </div>
       </div>
+
+      {dd && !focusOnly && (
+        <section className="border-line flex flex-col gap-2 border-t pt-4">
+          <h3 className="bh-heading">{tr.dd.title}</h3>
+          <p className="text-ink-muted text-[13px] leading-[18px]">{tr.dd.help}</p>
+          <div className="max-w-md">
+            <DdTable
+              result={ddResult}
+              size="lg"
+              selected={activePlay?.contract}
+              onSelect={
+                ddResult
+                  ? (seat, strain) =>
+                      startPlay(cellContract(seat, strain, ddResult.tricks[seat][strain]))
+                  : undefined
+              }
+            />
+          </div>
+        </section>
+      )}
     </Modal>
   )
 }
