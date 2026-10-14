@@ -591,26 +591,31 @@ dialog.bh-dialog-full {
   }
 }
 
-/* ---- Tam ekran el görünümü (DealDialog) ---- */
-.bh-deal-layout {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
+/* ---- Tam ekran el görünümü (DealDialog) ----
+   Üstte masa/oyun, altında yan yana dağılım istatistikleri ve El analizi. */
 .bh-deal-main,
-.bh-deal-side {
+.bh-deal-tables > section {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-2);
   min-width: 0;
 }
-@media (min-width: 1024px) {
-  .bh-deal-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
-    gap: var(--space-6);
+.bh-deal-main {
+  gap: var(--space-4);
+}
+.bh-deal-tables {
+  display: grid;
+  gap: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line);
+}
+@media (min-width: 768px) {
+  .bh-deal-tables {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: start;
   }
+}
+@media (min-width: 1024px) {
   /* Yansıtıldığında uzaktan okunsun: eller ve board kutusu büyür. */
   .bh-deal-main .bh-hand-lg {
     font-size: 24px;

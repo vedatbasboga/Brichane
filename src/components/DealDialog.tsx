@@ -101,33 +101,34 @@ function DealDialogContent({
         </div>
       }
     >
-      <div className="bh-deal-layout">
-        <div className="bh-deal-main">
-          {activePlay ? (
-            <PlayView
-              deal={deal}
-              contract={activePlay.contract}
-              step={activePlay.step}
-              onStep={setStep}
-              onExit={() => setPlay(null)}
-            />
-          ) : (
-            <>
-              {suggested && !focusOnly && (
-                <div className="flex flex-wrap items-center gap-3">
-                  <Button variant="primary" onClick={() => startPlay(suggested)}>
-                    <SuitText text={tr.play.button(contractLabel(suggested))} />
-                  </Button>
-                  <span className="text-ink-muted text-[13px]">{tr.play.selectHint}</span>
-                </div>
-              )}
+      <div className="bh-deal-main">
+        {activePlay ? (
+          <PlayView
+            deal={deal}
+            contract={activePlay.contract}
+            step={activePlay.step}
+            onStep={setStep}
+            onExit={() => setPlay(null)}
+          />
+        ) : (
+          <>
+            {suggested && !focusOnly && (
+              <div className="flex flex-wrap items-center gap-3">
+                <Button variant="primary" onClick={() => startPlay(suggested)}>
+                  <SuitText text={tr.play.button(contractLabel(suggested))} />
+                </Button>
+                <span className="text-ink-muted text-[13px]">{tr.play.selectHint}</span>
+              </div>
+            )}
 
-              <DealCard deal={deal} focusOnly={focusOnly} size="lg" />
-            </>
-          )}
-        </div>
+            <DealCard deal={deal} focusOnly={focusOnly} size="lg" />
+          </>
+        )}
+      </div>
 
-        <div className="bh-deal-side">
+      <div className="bh-deal-tables">
+        <section>
+          <h3 className="bh-heading">{tr.dealView.stats}</h3>
           <table className="bh-dd-table bh-stats">
             <thead>
               <tr>
@@ -150,16 +151,11 @@ function DealDialogContent({
               ))}
             </tbody>
           </table>
+        </section>
 
-          {renderExtra?.(deal)}
-        </div>
-      </div>
-
-      {dd && !focusOnly && (
-        <section className="border-line flex flex-col gap-2 border-t pt-4">
-          <h3 className="bh-heading">{tr.dd.title}</h3>
-          <p className="text-ink-muted text-[13px] leading-[18px]">{tr.dd.help}</p>
-          <div className="max-w-md">
+        {dd && !focusOnly && (
+          <section>
+            <h3 className="bh-heading">{tr.dd.title}</h3>
             <DdTable
               result={ddResult}
               size="lg"
@@ -171,9 +167,12 @@ function DealDialogContent({
                   : undefined
               }
             />
-          </div>
-        </section>
-      )}
+            <p className="text-ink-muted text-[13px] leading-[18px]">{tr.dd.help}</p>
+          </section>
+        )}
+      </div>
+
+      {renderExtra?.(deal)}
     </Modal>
   )
 }

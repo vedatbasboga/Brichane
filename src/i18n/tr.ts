@@ -202,6 +202,7 @@ export const tr = {
     shape: 'Dağılım',
     ltc: 'Kayıp',
     controls: 'Kontrol',
+    stats: 'Dağılım',
   },
 
   editor: {
