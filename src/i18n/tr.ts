@@ -28,7 +28,7 @@ export const tr = {
   nav: {
     label: 'Ana gezinme',
     generate: 'El Atölyesi',
-    sets: 'Setlerim',
+    sets: 'Kayıtlı Ellerim',
   },
 
   generate: {
@@ -85,7 +85,7 @@ export const tr = {
     cancel: 'Vazgeç',
     titleRequired: 'Set adı boş olamaz.',
     saved: 'Set kaydedildi.',
-    open: 'Setlerim’de aç',
+    open: 'Kayıtlı Ellerim’de aç',
     error: 'Kaydedilemedi:',
   },
 
@@ -142,7 +142,7 @@ export const tr = {
   },
 
   sets: {
-    title: 'Setlerim',
+    title: 'Kayıtlı Ellerim',
     loading: 'Setler yükleniyor…',
     loadError: 'Setler yüklenemedi:',
     empty: 'Henüz kayıtlı set yok. El Atölyesi’nde bir set üretip “Kaydet”e basın.',
@@ -158,7 +158,7 @@ export const tr = {
     copySuffix: ' (kopya)',
     copied: 'Kopya oluşturuldu.',
     notFound: 'Set bulunamadı.',
-    back: 'Setlerim',
+    back: 'Kayıtlı Ellerim',
     setTitle: 'Set adı',
     notes: 'Genel not',
     saveChanges: 'Değişiklikleri kaydet',
