@@ -1,4 +1,4 @@
-import type { DdResult, PlayLine, Seat, Strain, Vulnerability } from '../engine'
+import type { Card, Carding, DdResult, PlayLine, Seat, Strain, Vulnerability } from '../engine'
 
 export interface DdJob {
   /** Kuzeyden başlayan PBN dağıtım metni. */
@@ -12,6 +12,9 @@ export interface PlayJob {
   pbn: string
   declarer: Seat
   strain: Strain
+  carding: Carding
+  /** Zorunlu ilk çıkış (konu kontratı). */
+  lead?: Card
 }
 
 export type DdsWorkerRequest =

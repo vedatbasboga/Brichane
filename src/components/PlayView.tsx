@@ -6,16 +6,23 @@ import {
   dealToPbn,
   openingLeader,
   playStateAt,
+  type Card,
+  type Carding,
+  type DiscardMethod,
   type PlayContract,
   type PlayLine,
   type Seat,
+  type SignalMethod,
 } from '../engine'
+import { useCarding } from '../hooks/useCarding'
 import { useDdPlay } from '../hooks/useDdPlay'
 import { tr } from '../i18n/tr'
 import { CardLabel } from './CardLabel'
 import { contractLabel } from './format'
 import { HandView } from './HandView'
+import { signalText } from './signalText'
 import { Button } from './ui/Button'
+import { Field, Select } from './ui/Field'
 import { Notice } from './ui/Notice'
 import { SuitText } from './ui/SuitText'
 import { Tag } from './ui/Tag'
@@ -32,6 +39,8 @@ const AREA: Record<Seat, string> = {
 interface PlayViewProps {
   deal: DealView
   contract: PlayContract
+  /** Zorunlu ilk çıkış (konu kontratı). */
+  lead?: Card
   /** Oynanmış kart sayısı (0–52). */
   step: number
   onStep: (step: number) => void
@@ -39,8 +48,9 @@ interface PlayViewProps {
 }
 
 /** Bir kontratın çift kukla oynanışı: masa, ortadaki löve, adım kontrolleri ve açıklama. */
-export function PlayView({ deal, contract, step, onStep, onExit }: PlayViewProps) {
-  const play = useDdPlay(dealToPbn(deal.hands), contract)
+export function PlayView({ deal, contract, lead, step, onStep, onExit }: PlayViewProps) {
+  const [carding, setCarding] = useCarding()
+  const play = useDdPlay(dealToPbn(deal.hands), contract, carding, lead)
   const leader = openingLeader(contract.declarer)
 
   return (
@@ -59,6 +69,8 @@ export function PlayView({ deal, contract, step, onStep, onExit }: PlayViewProps
           {tr.play.exit}
         </Button>
       </div>
+
+      <CardingSelect carding={carding} onChange={setCarding} />
 
       {play.status === 'loading' && <p className="bh-dd-wait">{tr.play.computing}</p>}
       {play.status === 'error' && (
@@ -166,7 +178,20 @@ function PlayBoard({ deal, contract, line, step, onStep }: PlayBoardProps) {
               )}
             </p>
             <p className="text-ink-muted m-0 text-[13px]">
-              {last.forced ? (
+              {last.topicLead ? (
+                <>
+                  {last.topicLead.loss === 0
+                    ? tr.play.topicLeadBest
+                    : tr.play.topicLeadLoss(last.topicLead.loss)}
+                  {last.topicLead.loss > 0 &&
+                    last.alternatives.map((card, i) => (
+                      <span key={card} className="text-ink">
+                        {i > 0 ? ', ' : ' '}
+                        <CardLabel card={card} />
+                      </span>
+                    ))}
+                </>
+              ) : last.forced ? (
                 tr.play.forced
               ) : last.critical ? (
                 tr.play.criticalHelp
@@ -182,6 +207,12 @@ function PlayBoard({ deal, contract, line, step, onStep }: PlayBoardProps) {
                 </>
               )}
             </p>
+            {last.signal && (
+              <p className="m-0 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px]">
+                <Tag tone="note">{tr.signals.tag}</Tag>
+                <SuitText text={signalText(last.signal)} />
+              </p>
+            )}
           </div>
         )}
         {finished && (
@@ -193,5 +224,41 @@ function PlayBoard({ deal, contract, line, step, onStep }: PlayBoardProps) {
         )}
       </div>
     </>
+  )
+}
+
+interface CardingSelectProps {
+  carding: Carding
+  onChange: (carding: Carding) => void
+}
+
+/** Savunmanın apel anlaşması: tutum/sayı (standart, UDCA) ve defos (Roman, Lavinthal). */
+function CardingSelect({ carding, onChange }: CardingSelectProps) {
+  return (
+    <div className="flex flex-wrap items-end gap-3">
+      <Field label={tr.carding.signals}>
+        <Select
+          value={carding.signals}
+          onChange={(event) =>
+            onChange({ ...carding, signals: event.target.value as SignalMethod })
+          }
+        >
+          <option value="standard">{tr.carding.standard}</option>
+          <option value="udca">{tr.carding.udca}</option>
+        </Select>
+      </Field>
+      <Field label={tr.carding.discards}>
+        <Select
+          value={carding.discards}
+          onChange={(event) =>
+            onChange({ ...carding, discards: event.target.value as DiscardMethod })
+          }
+        >
+          <option value="roman">{tr.carding.roman}</option>
+          <option value="lavinthal">{tr.carding.lavinthal}</option>
+        </Select>
+      </Field>
+      <p className="text-ink-muted m-0 basis-full text-[13px]">{tr.carding.help}</p>
+    </div>
   )
 }

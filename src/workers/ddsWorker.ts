@@ -22,11 +22,14 @@ self.addEventListener('message', async (event: MessageEvent<DdsWorkerRequest>) =
   try {
     const dds = await getDds()
     if (request.type === 'play') {
-      const { pbn, declarer, strain } = request.job
+      const { pbn, declarer, strain, carding, lead } = request.job
       post({
         type: 'play',
         id: request.id,
-        line: computePlayLine(dds, parsePbnDeal(pbn), declarer, strain),
+        line: computePlayLine(dds, parsePbnDeal(pbn), declarer, strain, {
+          carding,
+          openingLead: lead,
+        }),
       })
       return
     }

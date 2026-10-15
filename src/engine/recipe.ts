@@ -20,6 +20,7 @@ import {
   suitLengths,
   type ShapeClass,
 } from './evaluate'
+import type { Strain } from './dd'
 
 /** Kapalı aralık [min, max]. */
 export type Range = readonly [number, number]
@@ -43,6 +44,8 @@ export interface SeatConstraint {
   topicSuit?: Range
   /** Konu rengindeki HP (örn. sağlam renk: AKQ = 9+). */
   topicSuitHcp?: Range
+  /** Konu renginde bulunması gereken kartlar (değer: 12 = A, 11 = K …), örn. çıkan elde AK. */
+  topicSuitCards?: readonly number[]
   /** Konu rengi bu elin açacağı renk olmalı: en uzun renk, eşitlikte yüksek renk. */
   topicSuitLongest?: boolean
   /** El bunlardan hiçbirine uymamalı (örn. minör açılış: "1NT eli değil"). */
@@ -68,6 +71,20 @@ export interface PairConstraint {
  */
 export type Placement = 'balanced' | 'fixed'
 
+/**
+ * Konunun oynanacak kontratı: Oynat par yerine bununla başlar (örn. savunma konuları).
+ * Koltuk tarifteki gibi yazılır, dağıtımla birlikte çevrilir.
+ */
+export interface TopicContract {
+  declarer: Seat
+  strain: Strain
+  level: number
+  /** Çıkış konu renginden: rengin en büyük kartı ya da yukarıdan 4. kart (rua). */
+  lead?: TopicLead
+}
+
+export type TopicLead = 'top' | 'fourth'
+
 export interface Recipe {
   id: string
   name: string
@@ -83,6 +100,7 @@ export interface Recipe {
    * uygulanır (örn. rakip bir renkte 5+ açar, kontr eden o renkte kısa).
    */
   topicSuit?: { suits: readonly Suit[] }
+  contract?: TopicContract
 }
 
 export function inRange(value: number, [min, max]: Range): boolean {
@@ -114,6 +132,10 @@ export function matchesSeat(hand: readonly Card[], c: SeatConstraint, topicSuit?
   }
   if (topicSuit && c.topicSuitHcp && !inRange(suitHcp(hand, topicSuit), c.topicSuitHcp))
     return false
+  if (topicSuit && c.topicSuitCards?.length) {
+    const suitIndex = SUITS.indexOf(topicSuit)
+    for (const rank of c.topicSuitCards) if (!hand.includes(suitIndex * 13 + rank)) return false
+  }
   if (c.topicSuitLongest && topicSuit && !isOpeningSuit(suitLengths(hand), topicSuit)) return false
   if (c.shape && !matchesShape(shapeClass(hand), c.shape)) return false
   if (c.controls && !inRange(controls(hand), c.controls)) return false
@@ -159,6 +181,11 @@ export function matchesRecipe(deal: Deal, recipe: Recipe): boolean {
   const topicSuits = recipe.topicSuit?.suits
   if (!topicSuits?.length) return matchesSeats(deal, recipe)
   return topicSuits.some((suit) => matchesSeats(deal, recipe, suit))
+}
+
+/** Tarife uyan dağıtımda hangi konu renginin tuttuğu (ilk uyan; tarifin yazıldığı koltuklarla). */
+export function matchedTopicSuit(deal: Deal, recipe: Recipe): Suit | undefined {
+  return recipe.topicSuit?.suits.find((suit) => matchesSeats(deal, recipe, suit))
 }
 
 /** Tarifin koşul koyduğu koltuklar ("konu eli"), N E S W sırasıyla. */

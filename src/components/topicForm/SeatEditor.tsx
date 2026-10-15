@@ -1,4 +1,4 @@
-import { SUITS, type Seat } from '../../engine'
+import { SUITS, rankLabel, type Seat } from '../../engine'
 import {
   CONTROLS_BOUNDS,
   LENGTH_BOUNDS,
@@ -6,6 +6,7 @@ import {
   SEAT_HCP_BOUNDS,
   SHAPE_CLASSES,
   SUIT_HCP_BOUNDS,
+  TOPIC_CARD_RANKS,
   emptyExcludeDraft,
   type SeatDraft,
 } from '../../data/topicDraft'
@@ -120,6 +121,15 @@ export function SeatEditor({ seat, isDealer, topicSuitEnabled, draft, onChange }
                 bounds={SUIT_HCP_BOUNDS}
                 onChange={(topicSuitHcp) => set({ topicSuitHcp })}
               />
+              <Field label={tr.editor.topicSuitCards}>
+                <ChipGroup
+                  label={`${seatName} ${tr.editor.topicSuitCards}`}
+                  options={TOPIC_CARD_RANKS.map(String)}
+                  selected={draft.topicSuitCards.map(String)}
+                  render={(rank) => rankLabel(Number(rank))}
+                  onChange={(ranks) => set({ topicSuitCards: ranks.map(Number) })}
+                />
+              </Field>
               <Checkbox
                 checked={draft.topicSuitLongest}
                 onChange={(event) => set({ topicSuitLongest: event.target.checked })}

@@ -1,7 +1,14 @@
 // Varsayılan konu tarifleri. Aralıklar başlangıç değerleridir; hocanın sistemine göre düzeltilecek.
 // Tarifler Güney dağıtıcıymış gibi yazılır; üretimde konu eli board'un dağıtıcısına çevrilir.
 
-import type { Recipe, SeatConstraint } from '../engine'
+import {
+  RANK_ACE,
+  RANK_JACK,
+  RANK_KING,
+  RANK_QUEEN,
+  type Recipe,
+  type SeatConstraint,
+} from '../engine'
 
 /** Konu seçicideki "Özel dağılım…" seçeneği. */
 export const CUSTOM_TOPIC_ID = 'custom'
@@ -437,6 +444,115 @@ export const DEFAULT_TOPICS: Recipe[] = [
     dealer: 'S',
     seats: { N: { shape: 'balanced' }, S: { shape: 'balanced' } },
     pair: { NS: { hcp: [25, 27] } },
+  },
+
+  // Savunma apelleri (hocanın "Apeller" notu). Oynat konu kontratıyla başlar; savunmacılar
+  // aynı sonucu veren kartlar arasından apel kartını oynar (anlaşma Oynat'ta seçilir).
+  {
+    // Sanzatuya As çıkışı: ortak Damı varsa büyük kartla beğenir, yoksa küçükle beğenmez.
+    id: 'signal-attitude-nt',
+    name: 'Tutum apeli: sanzatuya As çıkışı',
+    category: 'Savunma: apeller',
+    description:
+      "Kontrat 3NT. Çıkan: en uzun rengi 5–6'lı, başında AK; As ile çıkar. Çıkanın ortağı tutum apeli verir (Dam varsa beğenir). Deklare tarafı 25–28 HP, dengeli.",
+    dealer: 'S',
+    topicSuit: { suits: ['S', 'H', 'D', 'C'] },
+    contract: { declarer: 'S', strain: 'N', level: 3, lead: 'top' },
+    seats: {
+      N: { shape: ['balanced', 'semi-balanced'] },
+      S: { shape: 'balanced' },
+      W: { topicSuit: [5, 6], topicSuitCards: [RANK_ACE, RANK_KING], topicSuitLongest: true },
+    },
+    pair: { NS: { hcp: [25, 28] } },
+  },
+  {
+    // Koza karşı As çıkışı: sayı; yerde 3 boş kart varsa tutum, yer çakacaksa renk tercihi.
+    id: 'signal-ace-lead-trump',
+    name: 'Koza karşı As çıkışı: sayı apeli',
+    category: 'Savunma: apeller',
+    description:
+      "Kontrat 4♠. Çıkan: en uzun rengi 4–6'lı yan renk, başında AK; As ile çıkar. Çıkanın ortağı sayı apeli verir; yerde bu renkte 3 boş kart varsa tutum, yer bu rengi çakacaksa renk tercihi. Deklare tarafı 23–30 HP, ♠ fiti 8+.",
+    dealer: 'S',
+    topicSuit: { suits: ['H', 'D', 'C'] },
+    contract: { declarer: 'S', strain: 'S', level: 4, lead: 'top' },
+    seats: {
+      S: { suits: { S: [5, 7] } },
+      W: { topicSuit: [4, 6], topicSuitCards: [RANK_ACE, RANK_KING], topicSuitLongest: true },
+    },
+    pair: { NS: { hcp: [23, 30], fit: { suits: ['S'], length: [8, 11] } } },
+  },
+  {
+    // Rua çıkışa As ile alınır, renk sayıyla dönülür: 2 kart kaldıysa büyüğü, 3+ ise baştaki 4. kart.
+    id: 'signal-small-lead-return',
+    name: 'Rua çıkış: As ile alıp sayıyla dönüş',
+    category: 'Savunma: apeller',
+    description:
+      "Kontrat 3NT. Çıkan: en uzun rengi 5–6'lı, Ası yok; yukarıdan 4. kartla (rua) çıkar. Çıkanın ortağı: o rengin Ası ve 2–4 kart; Asla alır, rengi sayıyla döner. Deklare tarafı 24–27 HP, dengeli.",
+    dealer: 'S',
+    topicSuit: { suits: ['S', 'H', 'D', 'C'] },
+    contract: { declarer: 'S', strain: 'N', level: 3, lead: 'fourth' },
+    seats: {
+      N: { shape: ['balanced', 'semi-balanced'] },
+      E: { topicSuit: [2, 4], topicSuitCards: [RANK_ACE] },
+      S: { shape: 'balanced' },
+      W: { topicSuit: [5, 6], topicSuitLongest: true },
+    },
+    pair: { NS: { hcp: [24, 27] } },
+  },
+  {
+    // Yerde KQJ'li uzun renk, girişi yok: ortağın sayı apeli Ası ne zaman alacağını söyler.
+    id: 'signal-count-holdup',
+    name: 'Sayı apeli: As tutma',
+    category: 'Savunma: apeller',
+    description:
+      "Kontrat 3NT. Yer: KQJ'li 5–6'lı renk, 6–10 HP (dışarıda girişi az). Savunmacılardan biri: o rengin Ası ve 2–4 kart; diğeri 2–4 kartla sayı apeli verir, Ası tutan doğru turda alır. Deklare tarafı 23–28 HP.",
+    dealer: 'S',
+    topicSuit: { suits: ['S', 'H', 'D', 'C'] },
+    contract: { declarer: 'S', strain: 'N', level: 3 },
+    seats: {
+      N: {
+        hcp: [6, 10],
+        topicSuit: [5, 6],
+        topicSuitCards: [RANK_KING, RANK_QUEEN, RANK_JACK],
+      },
+      E: { topicSuit: [2, 4], topicSuitCards: [RANK_ACE] },
+      S: { shape: ['balanced', 'semi-balanced'], topicSuit: [2, 3] },
+      W: { topicSuit: [2, 4] },
+    },
+    pair: { NS: { hcp: [23, 28] } },
+  },
+  {
+    // Ortak tek kartla çıkar; Ası olan alıp rengi çaktırır, verdiği kartla dönüş rengini ister.
+    id: 'signal-suit-preference-ruff',
+    name: 'Renk tercihi: çaktırma',
+    category: 'Savunma: apeller',
+    description:
+      'Kontrat 4♠. Çıkan: yan renkte (♥, ♦ ya da ♣) tek kart, 1–3 koz; tek kartıyla çıkar. Çıkanın ortağı: o rengin Ası ve 4+ kart; Asla alıp rengi çaktırır, verdiği kartın büyüklüğüyle hangi renkten dönülmesini istediğini gösterir. Deklare tarafı 22–28 HP, ♠ fiti 8+.',
+    dealer: 'S',
+    topicSuit: { suits: ['H', 'D', 'C'] },
+    contract: { declarer: 'S', strain: 'S', level: 4, lead: 'top' },
+    seats: {
+      E: { topicSuit: [4, 7], topicSuitCards: [RANK_ACE] },
+      S: { suits: { S: [5, 7] } },
+      W: { suits: { S: [1, 3] }, topicSuit: [1, 1] },
+    },
+    pair: { NS: { hcp: [22, 28], fit: { suits: ['S'], length: [8, 10] } } },
+  },
+  {
+    // Yerin uzun rengi akarken savunmacılar defos yapar; ilk defos istenen rengi gösterir.
+    id: 'signal-discards',
+    name: 'Defos: Roman / Lavinthal',
+    category: 'Savunma: apeller',
+    description:
+      "Kontrat 3NT. Yer: AKQ'lu 6–7'li renk; deklare bu rengi akıtınca savunmacılar defos yapar. İlk defos Roman (tek/çift) ya da Lavinthal anlaşmasıyla istenen rengi gösterir (Oynat'tan seçilir). Deklare tarafı 24–28 HP.",
+    dealer: 'S',
+    topicSuit: { suits: ['S', 'H', 'D', 'C'] },
+    contract: { declarer: 'S', strain: 'N', level: 3 },
+    seats: {
+      N: { topicSuit: [6, 7], topicSuitCards: [RANK_ACE, RANK_KING, RANK_QUEEN] },
+      S: { shape: ['balanced', 'semi-balanced'], topicSuit: [1, 3] },
+    },
+    pair: { NS: { hcp: [24, 28] } },
   },
 ]
 

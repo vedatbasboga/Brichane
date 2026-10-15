@@ -83,9 +83,9 @@ export function recipeFingerprint(recipe: Recipe): string {
 }
 
 function encodeRecipe(recipe: Recipe): string {
-  const { dealer, seats, pair, placement, topicSuit } = recipe
+  const { dealer, seats, pair, placement, topicSuit, contract } = recipe
   const bytes = new TextEncoder().encode(
-    JSON.stringify({ dealer, seats, pair, placement, topicSuit }),
+    JSON.stringify({ dealer, seats, pair, placement, topicSuit, contract }),
   )
   let binary = ''
   for (const byte of bytes) binary += String.fromCharCode(byte)

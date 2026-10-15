@@ -132,3 +132,34 @@ describe('validateDraft', () => {
     expect(validateDraft(draft)).toEqual([])
   })
 })
+
+describe('topic contract in the form', () => {
+  it('writes the contract only when enabled, the lead only when chosen', () => {
+    const draft = namedDraft()
+    draft.contract = { enabled: false, declarer: 'S', strain: 'S', level: 4, lead: 'none' }
+    expect(draftToRecipe(draft).contract).toBeUndefined()
+    draft.contract.enabled = true
+    expect(draftToRecipe(draft).contract).toEqual({ declarer: 'S', strain: 'S', level: 4 })
+    draft.topicSuits = ['H']
+    draft.contract.lead = 'top'
+    expect(draftToRecipe(draft).contract?.lead).toBe('top')
+  })
+
+  it('needs a topic suit for a topic-suit lead and a level of 1–7', () => {
+    const draft = namedDraft()
+    draft.contract = { enabled: true, declarer: 'S', strain: 'N', level: 3, lead: 'fourth' }
+    expect(validateDraft(draft)).toHaveLength(1)
+    draft.topicSuits = ['S']
+    expect(validateDraft(draft)).toEqual([])
+    draft.contract.level = 8
+    expect(validateDraft(draft)).toHaveLength(1)
+  })
+
+  it('writes topic-suit cards from the highest down', () => {
+    const draft = namedDraft()
+    draft.topicSuits = ['S']
+    draft.seats.W.enabled = true
+    draft.seats.W.topicSuitCards = [11, 12]
+    expect(draftToRecipe(draft).seats.W?.topicSuitCards).toEqual([12, 11])
+  })
+})

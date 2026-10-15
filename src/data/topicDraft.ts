@@ -4,6 +4,7 @@
 import {
   PAIRS,
   SEATS,
+  STRAINS,
   SUITS,
   type PairConstraint,
   type Pair,
@@ -14,7 +15,9 @@ import {
   type SeatConstraint,
   type ShapeClass,
   type ShapeConstraint,
+  type Strain,
   type Suit,
+  type TopicLead,
 } from '../engine'
 import { tr } from '../i18n/tr'
 
@@ -28,6 +31,9 @@ export const CONTROLS_BOUNDS: Bounds = [0, 12]
 export const LTC_BOUNDS: Bounds = [0, 12]
 
 export const SHAPE_CLASSES: readonly ShapeClass[] = ['balanced', 'semi-balanced', 'unbalanced']
+
+/** Konu renginde aranabilecek kartlar: A K Q J 10 (değer, büyükten küçüğe). */
+export const TOPIC_CARD_RANKS: readonly number[] = [12, 11, 10, 9, 8]
 
 export interface ExcludeDraft {
   hcp: Bounds
@@ -46,6 +52,8 @@ export interface SeatDraft {
   anyLength: Bounds
   topicSuit: Bounds
   topicSuitHcp: Bounds
+  /** Konu renginde bulunması gereken kartlar (değer); boş = koşul yok. */
+  topicSuitCards: number[]
   topicSuitLongest: boolean
   controls: Bounds
   ltc: Bounds
@@ -60,6 +68,14 @@ export interface PairDraft {
   fitLength: Bounds
 }
 
+export interface ContractDraft {
+  enabled: boolean
+  declarer: Seat
+  strain: Strain
+  level: number
+  lead: TopicLead | 'none'
+}
+
 export interface TopicDraft {
   id: string
   name: string
@@ -71,6 +87,7 @@ export interface TopicDraft {
   topicSuits: Suit[]
   seats: Record<Seat, SeatDraft>
   pairs: Record<Pair, PairDraft>
+  contract: ContractDraft
 }
 
 const full = (bounds: Bounds): Bounds => [bounds[0], bounds[1]]
@@ -118,6 +135,7 @@ export function emptySeatDraft(): SeatDraft {
     anyLength: full(LENGTH_BOUNDS),
     topicSuit: full(LENGTH_BOUNDS),
     topicSuitHcp: full(SUIT_HCP_BOUNDS),
+    topicSuitCards: [],
     topicSuitLongest: false,
     controls: full(CONTROLS_BOUNDS),
     ltc: full(LTC_BOUNDS),
@@ -134,6 +152,10 @@ export function emptyPairDraft(): PairDraft {
   }
 }
 
+export function emptyContractDraft(): ContractDraft {
+  return { enabled: false, declarer: 'S', strain: 'N', level: 3, lead: 'none' }
+}
+
 export function emptyDraft(id: string): TopicDraft {
   return {
     id,
@@ -145,6 +167,7 @@ export function emptyDraft(id: string): TopicDraft {
     topicSuits: [],
     seats: { N: emptySeatDraft(), E: emptySeatDraft(), S: emptySeatDraft(), W: emptySeatDraft() },
     pairs: { NS: emptyPairDraft(), EW: emptyPairDraft() },
+    contract: emptyContractDraft(),
   }
 }
 
@@ -172,6 +195,7 @@ function seatToDraft(c: SeatConstraint | undefined): SeatDraft {
     anyLength: toBounds(c.anySuit?.length, LENGTH_BOUNDS),
     topicSuit: toBounds(c.topicSuit, LENGTH_BOUNDS),
     topicSuitHcp: toBounds(c.topicSuitHcp, SUIT_HCP_BOUNDS),
+    topicSuitCards: c.topicSuitCards ? [...c.topicSuitCards] : [],
     topicSuitLongest: c.topicSuitLongest === true,
     controls: toBounds(c.controls, CONTROLS_BOUNDS),
     ltc: toBounds(c.ltc, LTC_BOUNDS),
@@ -201,6 +225,9 @@ function draftToSeat(d: SeatDraft): SeatConstraint {
   if (topicSuit) c.topicSuit = topicSuit
   const topicSuitHcp = orUndefined(d.topicSuitHcp, SUIT_HCP_BOUNDS)
   if (topicSuitHcp) c.topicSuitHcp = topicSuitHcp
+  if (d.topicSuitCards.length) {
+    c.topicSuitCards = TOPIC_CARD_RANKS.filter((rank) => d.topicSuitCards.includes(rank))
+  }
   if (d.topicSuitLongest) c.topicSuitLongest = true
   const controls = orUndefined(d.controls, CONTROLS_BOUNDS)
   if (controls) c.controls = controls
@@ -261,6 +288,15 @@ export function recipeToDraft(recipe: Recipe): TopicDraft {
       W: seatToDraft(recipe.seats.W),
     },
     pairs: { NS: pairToDraft(recipe.pair?.NS), EW: pairToDraft(recipe.pair?.EW) },
+    contract: recipe.contract
+      ? {
+          enabled: true,
+          declarer: recipe.contract.declarer,
+          strain: recipe.contract.strain,
+          level: recipe.contract.level,
+          lead: recipe.contract.lead ?? 'none',
+        }
+      : emptyContractDraft(),
   }
 }
 
@@ -284,6 +320,15 @@ export function draftToRecipe(draft: TopicDraft): Recipe {
   const pair: Partial<Record<Pair, PairConstraint>> = {}
   for (const p of PAIRS) if (draft.pairs[p].enabled) pair[p] = draftToPair(draft.pairs[p])
   if (Object.keys(pair).length) recipe.pair = pair
+  const contract = draft.contract
+  if (contract.enabled) {
+    recipe.contract = {
+      declarer: contract.declarer,
+      strain: contract.strain,
+      level: contract.level,
+    }
+    if (contract.lead !== 'none') recipe.contract.lead = contract.lead
+  }
   return recipe
 }
 
@@ -321,6 +366,7 @@ export function validateDraft(draft: TopicDraft): string[] {
     if (
       !isFull(d.topicSuit, LENGTH_BOUNDS) ||
       !isFull(d.topicSuitHcp, SUIT_HCP_BOUNDS) ||
+      d.topicSuitCards.length > 0 ||
       d.topicSuitLongest
     ) {
       usesTopicSuit = true
@@ -333,6 +379,21 @@ export function validateDraft(draft: TopicDraft): string[] {
     checkRange(where, tr.editor.pairHcp, d.hcp)
     checkRange(where, tr.editor.fit, d.fitLength)
   }
+  if (draft.contract.enabled && draft.contract.lead !== 'none') usesTopicSuit = true
   if (usesTopicSuit && draft.topicSuits.length === 0) errors.push(e.topicSuitMissing)
+  const { enabled, declarer, strain, level, lead } = draft.contract
+  if (
+    enabled &&
+    !(
+      SEATS.includes(declarer) &&
+      STRAINS.includes(strain) &&
+      ['none', 'top', 'fourth'].includes(lead) &&
+      Number.isInteger(level) &&
+      level >= 1 &&
+      level <= 7
+    )
+  ) {
+    errors.push(e.contract)
+  }
   return errors
 }

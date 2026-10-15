@@ -5,6 +5,7 @@
 import { SEATS, cardRank, cardSuitIndex, pairOf, rotateSeat } from './cards'
 import type { Card, Deal, Pair, Seat } from './cards'
 import { contractLevel, parseParContract, type DdResult, type Strain } from './dd'
+import type { SignalNote } from './signals'
 
 export interface PlayedCard {
   seat: Seat
@@ -18,6 +19,10 @@ export interface PlayStep extends PlayedCard {
   critical: boolean
   /** Oynanabilecek tek kart. */
   forced: boolean
+  /** Savunmacının apeli (anlaşmaya göre seçilen kart ve anlamı). */
+  signal?: SignalNote
+  /** Konu gereği yapılan çıkış; `loss`: çift kukla en iyi çıkışa göre kaybedilen löve. */
+  topicLead?: { loss: number }
 }
 
 export interface PlayLine {
@@ -63,19 +68,32 @@ export interface PlayOption {
   score: number
 }
 
+/** En iyi skoru veren bütün kartlar. */
+export function optimalCards(options: readonly PlayOption[]): Card[] {
+  const best = Math.max(...options.map((o) => o.score))
+  return options.filter((o) => o.score === best).flatMap((o) => o.cards)
+}
+
 /**
  * En iyi skorlu kartlardan birini seçer. Eşdeğer kartlar aynı sonucu verir; çıkışta dizinin
- * en yükseği, takip ederken en düşüğü oynanır (masadaki alışkanlık gibi).
+ * en yükseği, takip ederken en düşüğü oynanır (masadaki alışkanlık gibi). `preferred` en iyi
+ * kartlardan biriyse o oynanır (örn. apel kartı).
  */
 export function choosePlay(
   options: readonly PlayOption[],
   leading: boolean,
+  preferred?: Card | null,
 ): { card: Card; alternatives: Card[]; critical: boolean; forced: boolean } {
   const best = Math.max(...options.map((o) => o.score))
   const optimal = options.filter((o) => o.score === best)
   const group = optimal[0].cards
-  const card = leading ? group[0] : group[group.length - 1]
   const optimalCards = optimal.flatMap((o) => o.cards)
+  const card =
+    preferred != null && optimalCards.includes(preferred)
+      ? preferred
+      : leading
+        ? group[0]
+        : group[group.length - 1]
   const legalCount = options.reduce((sum, o) => sum + o.cards.length, 0)
   const forced = legalCount === 1
   return {
@@ -86,7 +104,7 @@ export function choosePlay(
   }
 }
 
-function byDisplayOrder(a: Card, b: Card): number {
+export function byDisplayOrder(a: Card, b: Card): number {
   return cardSuitIndex(a) - cardSuitIndex(b) || cardRank(b) - cardRank(a)
 }
 

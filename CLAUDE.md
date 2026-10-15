@@ -49,12 +49,14 @@ Ağır işler (el üretimi, DDS) Web Worker'da. Veri Firestore'da, yayın Fireba
 - `topicSuit` (konu rengi): tarifte izin verilen renklerden biri seçilir, koltukların `topicSuit` aralığı aynı renge uygulanır (takeout kontr: rakip X'te 5+, kontr eden X'te 0–1). `topicSuitHcp` o renkteki HP (Gambling 3NT: AKQ = 9+). Bir koşul açılan renge göre değişiyorsa (Michaels: minöre majörler, majöre diğer majör + minör) konu ikiye bölünür.
 - Çift kukla: `dd.ts` (modeller, DDS tablo/hex dönüşümleri, par ayrıştırma). Hesap `workers/ddsWorker.ts` (bridge-dds, WebAssembly), havuz `hooks/useDdAnalysis.ts` (en fazla 3 işçi). DDS tablo sırası ♠ ♥ ♦ ♣ NT × N E S W; gösterim ♣ ♦ ♥ ♠ NT.
 - Oynat (çift kukla oyunu): `play.ts` saf mantık (löve kazananı, `playStateAt`, `choosePlay` — eşdeğer kartlarda çıkışta en yüksek, takipte en düşük; tek en iyi kart = kritik hamle; `defaultContract` = par). DDS ile hesap `workers/ddPlay.ts` (`SolveBoardPBN`, bütün kartlar + skor), işçide `'play'` mesajı, hook `useDdPlay`. Sonuç tablodaki löveyle aynı olmalı (`ddPlay.test.ts` gerçek DDS ile doğrular).
+- Apeller: `signals.ts` (hocanın "Apeller" notu). Savunmacı yalnızca çift kukla açısından eşit kartlar arasından seçer, sonuç değişmez; adımda `signal` notu (`given` / `dd` = kural löveye mal olurdu / `noCard`). Anlaşma `Carding` (tutum+sayı: standart/UDCA; defos: Roman/Lavinthal), Oynat'ta seçilir (`useCarding`, localStorage `brichane.carding`). Belirsiz noktalar (beğenme ölçütü, Roman'da 6, Lavinthal sanzatuda, dönüş kartı) hoca onayı bekliyor.
+- Konu kontratı: tarifte `contract` (deklare/koz/seviye, `lead: 'top' | 'fourth'` konu renginden zorunlu çıkış). `topicPlay.ts` dağıtımla birlikte koltuğu çevirir; Oynat par yerine bununla başlar. Zorunlu çıkış çift kukla en iyisi değilse adımda `topicLead.loss`.
 - Ortak test verileri: `src/engine/testFixtures.ts`.
 
 ## Konular (`src/data/`)
 
 - **Kullanıcılar konu yönetmez.** Hazır konu listesi `topics.ts` içinde sabit; yeni konuyu geliştirici ekler. Konular için Firestore yok.
-- Hazır konular özel dağılım formunda kayıpsız açılabilmeli (`topicDraft.test.ts` gidiş-dönüş testi): tarife yeni alan eklenirse `topicDraft.ts` ve `SeatEditor` da güncellenir.
+- Hazır konular özel dağılım formunda kayıpsız açılabilmeli (`topicDraft.test.ts` gidiş-dönüş testi): tarife yeni alan eklenirse `topicDraft.ts` ve `SeatEditor` (kontrat için `TopicForm`) da güncellenir; özel tarif bağlantıda taşınıyorsa `shareLink.ts` `encodeRecipe`'e de eklenir.
 - Ana sayfadaki seçicide "Özel dağılım…" (`CUSTOM_TOPIC_ID`) → `CustomTopicDialog` + `TopicForm`; anlık kullanılır, kaydedilmez.
 - `topicDraft.ts`: form modeli (tam aralık = koşul yok) ↔ `Recipe` dönüşümü ve doğrulama.
 - Bir sete kaydederken tarifin kopyası da saklanmalı (özel dağılımın kalıcı bir kaydı yok).

@@ -9,8 +9,11 @@ import {
   hcp,
   losingTrickCount,
   shapePattern,
+  topicPlay,
+  type Card,
   type DdResult,
   type PlayContract,
+  type Recipe,
 } from '../engine'
 import { tr } from '../i18n/tr'
 import { DdTable } from './DdTable'
@@ -31,6 +34,8 @@ interface DealDialogProps {
   renderExtra?: (deal: DealView) => ReactNode
   /** Çift kukla sonuçları (board sırasıyla); "sadece konu eli" açıkken gösterilmez. */
   dd?: (DdResult | undefined)[]
+  /** Setin tarifi; konu kontratı varsa Oynat par yerine onunla başlar. */
+  recipe?: Recipe
 }
 
 /** Seçili board'un tam ekran görünümü (sunumda yansıtılır); ← → ile boardlar arasında (oyun modunda kartlar arasında) gezilir. */
@@ -42,6 +47,8 @@ export function DealDialog(props: DealDialogProps) {
 interface PlayMode {
   board: number
   contract: PlayContract
+  /** Zorunlu ilk çıkış (konu kontratı). */
+  lead?: Card
   step: number
 }
 
@@ -53,6 +60,7 @@ function DealDialogContent({
   onNavigate,
   renderExtra,
   dd,
+  recipe,
 }: DealDialogProps & { index: number }) {
   const [play, setPlay] = useState<PlayMode | null>(null)
   const deal = deals[index]
@@ -61,9 +69,11 @@ function DealDialogContent({
   const hasNext = index < deals.length - 1
   // Oyun modu yalnızca başlatıldığı board'da geçerli; board değişince analize dönülür.
   const activePlay = play && play.board === deal.board && !focusOnly ? play : null
-  const suggested = ddResult ? defaultContract(ddResult) : null
+  const topic = recipe ? topicPlay(recipe, deal) : null
+  const suggested = topic?.contract ?? (ddResult ? defaultContract(ddResult) : null)
 
-  const startPlay = (contract: PlayContract) => setPlay({ board: deal.board, contract, step: 0 })
+  const startPlay = (contract: PlayContract, lead?: Card) =>
+    setPlay({ board: deal.board, contract, lead, step: 0 })
   const setStep = (step: number) =>
     setPlay((current) =>
       current ? { ...current, step: Math.max(0, Math.min(PLAY_LENGTH, step)) } : current,
@@ -106,6 +116,7 @@ function DealDialogContent({
           <PlayView
             deal={deal}
             contract={activePlay.contract}
+            lead={activePlay.lead}
             step={activePlay.step}
             onStep={setStep}
             onExit={() => setPlay(null)}
@@ -114,8 +125,14 @@ function DealDialogContent({
           <>
             {suggested && !focusOnly && (
               <div className="flex flex-wrap items-center gap-3">
-                <Button variant="primary" onClick={() => startPlay(suggested)}>
-                  <SuitText text={tr.play.button(contractLabel(suggested))} />
+                <Button variant="primary" onClick={() => startPlay(suggested, topic?.lead)}>
+                  <SuitText
+                    text={
+                      topic
+                        ? tr.play.topicButton(contractLabel(suggested))
+                        : tr.play.button(contractLabel(suggested))
+                    }
+                  />
                 </Button>
                 <span className="text-ink-muted text-[13px]">{tr.play.selectHint}</span>
               </div>

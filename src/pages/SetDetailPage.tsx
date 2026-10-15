@@ -262,6 +262,7 @@ function SetDetail({ initialSet, initialNotes }: SetDetailProps) {
         onClose={() => setSelected(null)}
         onNavigate={setSelected}
         dd={dd.results}
+        recipe={set.recipe}
         renderExtra={(deal) => (
           <BoardNoteEditor
             key={deal.board}

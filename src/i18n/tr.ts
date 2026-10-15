@@ -126,6 +126,51 @@ export const tr = {
     over: (n: number) => `${n} fazla`,
     down: (n: number) => `${n} batık`,
     selectHint: 'Başka bir kontratı oynatmak için tablodaki bir hücreye tıklayın.',
+    topicButton: (contract: string) => `Oynat · ${contract} (konu kontratı)`,
+    topicLead: 'Konu gereği çıkış.',
+    topicLeadBest: 'Konu gereği çıkış; çift kukla açısından da en iyi çıkışlardan biri.',
+    topicLeadLoss: (tricks: number) =>
+      `Konu gereği çıkış; çift kukla en iyi çıkışa göre ${tricks} löve kaybettiriyor. En iyi çıkışlar:`,
+  },
+
+  carding: {
+    signals: 'Tutum ve sayı',
+    standard: 'Standart (büyük = beğeniyorum / çift)',
+    udca: 'UDCA (küçük = beğeniyorum / tek)',
+    discards: 'Defos',
+    roman: 'Roman (tek/çift)',
+    lavinthal: 'Lavinthal',
+    help: 'Savunmacılar çift kukla açısından eşit kartlar arasından bu anlaşmaya göre apel verir.',
+  },
+
+  signals: {
+    tag: 'Apel',
+    highCard: 'büyük kart',
+    lowCard: 'küçük kart',
+    attitude: (like: boolean, card: string) =>
+      `Tutum: ${like ? 'beğeniyor' : 'beğenmiyor'} (${card}).`,
+    count: (even: boolean, card: string) =>
+      `Sayı: ${even ? 'çift' : 'tek'} sayıda kartı var (${card}).`,
+    suitPreference: (suit: string, card: string) => `Renk tercihi: ${suit} istiyor (${card}).`,
+    roman: 'Defos (Roman)',
+    lavinthal: 'Defos (Lavinthal)',
+    discard: {
+      odd: (suit: string) => `tek sayı, bu rengi (${suit}) istiyor.`,
+      lowEven: (suit: string) =>
+        `küçük çift sayı, bu rengi istemiyor; kalan renklerden düşüğünü (${suit}) istiyor.`,
+      highEven: (suit: string) =>
+        `büyük çift sayı, bu rengi istemiyor; kalan renklerden büyüğünü (${suit}) istiyor.`,
+      low: (suit: string) => `küçük kart, kalan renklerden düşüğünü (${suit}) istiyor.`,
+      high: (suit: string) => `büyük kart, kalan renklerden büyüğünü (${suit}) istiyor.`,
+      none: (suit: string) => `${suit} istemek için uygun kart yok.`,
+      wanted: (suit: string) => `${suit} istenecekti.`,
+    },
+    returnTwo: 'Ortağın rengine dönüş: elde 2 kart kaldı, büyüğü dönülür.',
+    returnMore: (remaining: number) =>
+      `Ortağın rengine dönüş: elde ${remaining} kart kaldı, baştaki 4. kart dönülür.`,
+    aceWins: 'Rua çıkışa As ile alındı.',
+    blocked:
+      'Kuralın istediği kart çift kukla açısından löveye mal olurdu; çift kuklanın kartı oynandı.',
   },
 
   pbn: {
@@ -227,6 +272,20 @@ export const tr = {
     topicSuitLength: 'Konu rengindeki uzunluk',
     topicSuitLongest: 'Konu rengi bu elin açacağı renk (en uzun; eşitse yüksek renk)',
     topicSuitHcp: 'Konu rengindeki HP (örn. AKQ = 9)',
+    topicSuitCards: 'Konu renginde bulunması gereken kartlar',
+    contract: 'Konu kontratı',
+    contractEnabled: 'Oynat bu kontratla başlasın (par yerine)',
+    contractHelp:
+      'Savunma konuları için: deklare ve çıkış her board’da konu eliyle birlikte döner. Tarifteki koltuklara göre yazın.',
+    contractDeclarer: 'Deklare',
+    contractStrain: 'Koz',
+    contractLevel: 'Seviye',
+    contractLead: 'İlk çıkış',
+    leads: {
+      none: 'Çift kukla seçsin',
+      top: 'Konu renginin en büyük kartı',
+      fourth: 'Konu renginden yukarıdan 4. kart',
+    },
     advanced: 'Gelişmiş',
     controls: 'Kontrol (A=2, K=1)',
     ltc: 'Kaybeden löve (LTC)',
@@ -248,6 +307,7 @@ export const tr = {
       suitMaxSum: (where: string) =>
         `${where}: renklerin en çok uzunlukları toplamı 13'ten az olamaz.`,
       topicSuitMissing: 'Konu rengindeki uzunluk koşulu var ama konu rengi seçilmedi.',
+      contract: 'Konu kontratı geçersiz (seviye 1–7 olmalı).',
     },
   },
 } as const

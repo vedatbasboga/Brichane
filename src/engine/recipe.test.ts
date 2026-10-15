@@ -6,6 +6,7 @@ import {
   matchesPair,
   matchesRecipe,
   matchesSeat,
+  matchedTopicSuit,
   type Recipe,
   type SeatConstraint,
 } from './recipe'
@@ -138,6 +139,21 @@ describe('matchesRecipe', () => {
       })
       expect(matchesRecipe(deal, withHcp([3, 3]))).toBe(true)
       expect(matchesRecipe(deal, withHcp([4, 10]))).toBe(false)
+    })
+
+    it('requires the listed cards in the chosen suit', () => {
+      // B'nin ♣'ı QJT98; K'nin ♠'ı AKQ2.
+      const withCards = (ranks: number[]): Recipe => ({
+        ...base,
+        seats: { ...base.seats, W: { topicSuit: [5, 13], topicSuitCards: ranks } },
+      })
+      expect(matchesRecipe(deal, withCards([10, 9]))).toBe(true)
+      expect(matchesRecipe(deal, withCards([12]))).toBe(false)
+    })
+
+    it('tells which topic suit the deal matched', () => {
+      expect(matchedTopicSuit(deal, base)).toBe('C')
+      expect(matchedTopicSuit(deal, { ...base, topicSuit: { suits: ['S'] } })).toBeUndefined()
     })
 
     it('ignores seat topic-suit ranges when the recipe has no topic suit', () => {

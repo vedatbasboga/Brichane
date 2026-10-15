@@ -376,6 +376,7 @@ export function GeneratePage() {
                     onClose={() => setSelected(null)}
                     onNavigate={setSelected}
                     dd={dd.results}
+                    recipe={generatedWith.recipe}
                   />
                 </>
               )}

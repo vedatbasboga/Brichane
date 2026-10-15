@@ -1,9 +1,10 @@
-import { PAIRS, SEATS, SUITS, type Seat } from '../../engine'
-import type { TopicDraft } from '../../data/topicDraft'
+import { PAIRS, SEATS, STRAINS, STRAIN_SYMBOLS, SUITS, type Seat, type Strain } from '../../engine'
+import type { ContractDraft, TopicDraft } from '../../data/topicDraft'
 import { tr } from '../../i18n/tr'
+import { Checkbox } from '../ui/Checkbox'
 import { Field as LabeledField, Select } from '../ui/Field'
 import { Suit } from '../ui/Suit'
-import { ChipGroup, Field } from './FormControls'
+import { ChipGroup, Field, NumberField } from './FormControls'
 import { PairEditor } from './PairEditor'
 import { SeatEditor } from './SeatEditor'
 
@@ -76,6 +77,12 @@ export function TopicForm({ draft, onChange }: TopicFormProps) {
         ))}
       </div>
 
+      <ContractEditor
+        draft={draft.contract}
+        onChange={(contract) => set({ contract })}
+        topicSuitEnabled={draft.topicSuits.length > 0}
+      />
+
       <div className="grid items-start gap-4 md:grid-cols-2">
         {PAIRS.map((pair) => (
           <PairEditor
@@ -87,5 +94,81 @@ export function TopicForm({ draft, onChange }: TopicFormProps) {
         ))}
       </div>
     </div>
+  )
+}
+
+interface ContractEditorProps {
+  draft: ContractDraft
+  topicSuitEnabled: boolean
+  onChange: (draft: ContractDraft) => void
+}
+
+const LEADS = ['none', 'top', 'fourth'] as const
+
+/** Konu kontratı (savunma konuları): Oynat par yerine bununla başlar. */
+function ContractEditor({ draft, topicSuitEnabled, onChange }: ContractEditorProps) {
+  const set = (patch: Partial<ContractDraft>) => onChange({ ...draft, ...patch })
+  return (
+    <section className="bh-panel flex flex-col gap-4">
+      <h3 className="bh-heading">{tr.editor.contract}</h3>
+      <Checkbox
+        checked={draft.enabled}
+        onChange={(event) => set({ enabled: event.target.checked })}
+        label={tr.editor.contractEnabled}
+      />
+      {draft.enabled && (
+        <div className="grid gap-4 md:grid-cols-4">
+          <LabeledField label={tr.editor.contractDeclarer}>
+            <Select
+              value={draft.declarer}
+              onChange={(event) => set({ declarer: event.target.value as Seat })}
+            >
+              {SEATS.map((seat) => (
+                <option key={seat} value={seat}>
+                  {tr.seatNames[seat]}
+                </option>
+              ))}
+            </Select>
+          </LabeledField>
+          <LabeledField label={tr.editor.contractStrain}>
+            <Select
+              value={draft.strain}
+              onChange={(event) => set({ strain: event.target.value as Strain })}
+            >
+              {STRAINS.map((strain) => (
+                <option key={strain} value={strain}>
+                  {STRAIN_SYMBOLS[strain]}
+                </option>
+              ))}
+            </Select>
+          </LabeledField>
+          <div className="bh-field">
+            <span className="bh-field-label">{tr.editor.contractLevel}</span>
+            <NumberField
+              label={tr.editor.contractLevel}
+              value={draft.level}
+              min={1}
+              max={7}
+              onChange={(level) => set({ level })}
+            />
+          </div>
+          <LabeledField label={tr.editor.contractLead}>
+            <Select
+              value={draft.lead}
+              onChange={(event) => set({ lead: event.target.value as ContractDraft['lead'] })}
+            >
+              {LEADS.filter(
+                (lead) => lead === 'none' || topicSuitEnabled || draft.lead === lead,
+              ).map((lead) => (
+                <option key={lead} value={lead}>
+                  {tr.editor.leads[lead]}
+                </option>
+              ))}
+            </Select>
+          </LabeledField>
+        </div>
+      )}
+      <p className="bh-field-hint m-0">{tr.editor.contractHelp}</p>
+    </section>
   )
 }

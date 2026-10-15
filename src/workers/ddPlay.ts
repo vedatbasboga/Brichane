@@ -4,14 +4,18 @@
 
 import type { Dds } from 'bridge-dds'
 import {
+  byDisplayOrder,
   cardRank,
   cardSuitIndex,
   choosePlay,
   dealToPbn,
+  defenderSignal,
   openingLeader,
+  optimalCards,
   rotateSeat,
   trickWinner,
   type Card,
+  type Carding,
   type Deal,
   type PlayLine,
   type PlayOption,
@@ -31,10 +35,24 @@ const ddsSuit = (card: Card) => cardSuitIndex(card)
 const ddsRank = (card: Card) => cardRank(card) + 2
 const fromDds = (suit: number, rank: number): Card => suit * 13 + (rank - 2)
 
-export function computePlayLine(dds: Dds, deal: Deal, declarer: Seat, strain: Strain): PlayLine {
+export interface PlayLineOptions {
+  /** Savunmacılar en iyi kartlar arasından bu anlaşmaya göre apel verir. */
+  carding?: Carding
+  /** Zorunlu ilk çıkış (konu gereği); çift kukla en iyisi olmasa da oynanır. */
+  openingLead?: Card
+}
+
+export function computePlayLine(
+  dds: Dds,
+  deal: Deal,
+  declarer: Seat,
+  strain: Strain,
+  { carding, openingLead }: PlayLineOptions = {},
+): PlayLine {
   const hands: Deal = { N: [...deal.N], E: [...deal.E], S: [...deal.S], W: [...deal.W] }
   let leader = openingLeader(declarer)
   let trick: PlayedCard[] = []
+  const history: PlayedCard[] = []
   const steps: PlayStep[] = []
   let declarerTricks = 0
 
@@ -66,10 +84,36 @@ export function computePlayLine(dds: Dds, deal: Deal, declarer: Seat, strain: St
       })
     }
 
-    const choice = choosePlay(options, trick.length === 0)
-    steps.push({ seat: toPlay, ...choice })
-    hands[toPlay] = hands[toPlay].filter((c) => c !== choice.card)
-    trick.push({ seat: toPlay, card: choice.card })
+    const optimal = optimalCards(options)
+    const legal = options.flatMap((o) => o.cards)
+    let step: PlayStep
+    if (n === 0 && openingLead !== undefined && legal.includes(openingLead)) {
+      const best = Math.max(...options.map((o) => o.score))
+      const score = options.find((o) => o.cards.includes(openingLead))!.score
+      step = {
+        seat: toPlay,
+        card: openingLead,
+        alternatives: optimal.filter((c) => c !== openingLead).sort(byDisplayOrder),
+        critical: false,
+        forced: legal.length === 1,
+        topicLead: { loss: best - score },
+      }
+    } else {
+      const signal = carding
+        ? defenderSignal(
+            { deal, hands, declarer, strain, history, seat: toPlay },
+            optimal,
+            legal,
+            carding,
+          )
+        : null
+      step = { seat: toPlay, ...choosePlay(options, trick.length === 0, signal?.card) }
+      if (signal) step.signal = signal.note
+    }
+    steps.push(step)
+    hands[toPlay] = hands[toPlay].filter((c) => c !== step.card)
+    trick.push({ seat: toPlay, card: step.card })
+    history.push({ seat: toPlay, card: step.card })
 
     if (trick.length === 4) {
       const winner = trickWinner(trick, strain)
