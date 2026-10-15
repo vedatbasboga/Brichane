@@ -37,6 +37,8 @@ Bridge Composer, BBO ya da turnuvadan gelen `.pbn` dosyası yüklenince eller a�
 - Yeni hazır konular: Jacoby transfer (♥/♠ ayrı), 2♣ güçlü açış, splinter, Blackwood/RKCB, preemptif açılışlar (3'lü), dengeleme (balancing), negatif kontr.
 - Lebensohl'un ikinci kullanımı: rakip zayıf iki açar, ortak kontr eder, cevapçı 2NT ile zayıf/güçlü eli ayırır (ayrı konu olarak).
 - Konu açıklamasına kısa "derste ne sorulur" notu.
+- **Konuya göre defos anlaşması:** "Defos: Lavinthal" konusu Oynat'ı Lavinthal ile, "Defos: Roman" Roman ile açsın (şimdi açıklamada "Oynat'ta seçilmeli" yazıyor; seçim tarayıcıda hatırlanan genel ayar).
+- **Roman açılışta:** hocanın notu "anlaşmaya bağlı olarak açılışta da kullanılabilir" diyor; motor şu an Roman'ı yalnızca defosta kullanıyor. Hoca isterse `signals.ts`'e ve Oynat'a seçenek olarak eklenir.
 
 #### İleri sürümler: Lebensohl ve Check Back Stayman (hoca dönüşüne göre eklenecek ya da silinecek)
 Hoca ilk sürümleri ileri seviye buldu; `topics.ts`'te artık temel öğretim sürümleri var. Geniş sürümler aşağıda; eklenirse ayrı id (`lebensohl-advanced`, `check-back-stayman-advanced`) ve "(ileri)" adıyla, temel sürümlerin yanına. Temelde üretilmeyen ama burada çıkanlar:

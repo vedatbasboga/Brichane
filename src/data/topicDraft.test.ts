@@ -162,4 +162,14 @@ describe('topic contract in the form', () => {
     draft.seats.W.topicSuitCards = [11, 12]
     expect(draftToRecipe(draft).seats.W?.topicSuitCards).toEqual([12, 11])
   })
+
+  it('keeps topic-suit cards inside exclusions and needs a topic suit for them', () => {
+    const draft = namedDraft()
+    draft.seats.N.enabled = true
+    draft.seats.N.exclude = [{ ...emptyExcludeDraft(), topicSuitCards: [8] }]
+    expect(validateDraft(draft)).toHaveLength(1)
+    draft.topicSuits = ['H']
+    expect(validateDraft(draft)).toEqual([])
+    expect(draftToRecipe(draft).seats.N?.exclude).toEqual([{ topicSuitCards: [8] }])
+  })
 })

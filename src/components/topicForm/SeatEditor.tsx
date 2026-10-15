@@ -205,6 +205,23 @@ export function SeatEditor({ seat, isDealer, topicSuitEnabled, draft, onChange }
                         }
                       />
                     ))}
+                    {topicSuitEnabled && (
+                      <Field label={tr.editor.topicSuitCards}>
+                        <ChipGroup
+                          label={`${seatName} ${tr.editor.exclude} ${i + 1} ${tr.editor.topicSuitCards}`}
+                          options={TOPIC_CARD_RANKS.map(String)}
+                          selected={ex.topicSuitCards.map(String)}
+                          render={(rank) => rankLabel(Number(rank))}
+                          onChange={(ranks) =>
+                            set({
+                              exclude: draft.exclude.map((e, j) =>
+                                j === i ? { ...e, topicSuitCards: ranks.map(Number) } : e,
+                              ),
+                            })
+                          }
+                        />
+                      </Field>
+                    )}
                     <Button
                       variant="danger"
                       size="sm"

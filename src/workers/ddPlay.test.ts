@@ -12,6 +12,7 @@ import {
   playStateAt,
   seededRng,
   tricksFromDds,
+  type Carding,
   type Seat,
   type Strain,
 } from '../engine'
@@ -111,5 +112,55 @@ describe('computePlayLine (gerçek DDS)', () => {
       }
     }
     expect(attitudes).toBeGreaterThan(0)
+  }, 60000)
+
+  /** Konunun birkaç boardunu oynatır; adımlardaki apel notlarını döndürür. */
+  function topicSignals(id: string, carding: Carding = DEFAULT_CARDING) {
+    const recipe = DEFAULT_TOPICS.find((t) => t.id === id)!
+    const { deals } = generateDeals({ recipe, count: 4, seed: `dds-${id}` })
+    return deals.map((deal) => {
+      const play = topicPlay(recipe, deal)!
+      const { declarer, strain } = play.contract
+      const line = computePlayLine(dds, deal.hands, declarer, strain, {
+        carding,
+        openingLead: play.lead,
+      })
+      return line.steps.map((step) => step.signal?.signal)
+    })
+  }
+
+  it.each([
+    ['signal-attitude-nt-queen', 'attitude'],
+    ['signal-ace-lead-trump', 'count'],
+    ['signal-attitude-trump', 'attitude'],
+    ['signal-suit-preference-trump', 'suitPreference'],
+  ] as const)(
+    '%s: third hand signals %s at trick one',
+    (id, kind) => {
+      const thirds = topicSignals(id).map((signals) => signals[2])
+      for (const third of thirds) if (third) expect(third.kind).toBe(kind)
+      expect(thirds.some(Boolean)).toBe(true)
+    },
+    60000,
+  )
+
+  it.each(['signal-return-count-nt', 'signal-return-count-trump'])(
+    '%s: the Ace wins and the suit comes back by count',
+    (id) => {
+      const returns = topicSignals(id)
+        .flat()
+        .filter((s) => s?.kind === 'return')
+      expect(returns.length).toBeGreaterThan(0)
+    },
+    60000,
+  )
+
+  it('signal-discards-lavinthal: the first discard is a Lavinthal signal', () => {
+    const carding: Carding = { signals: 'standard', discards: 'lavinthal' }
+    const discards = topicSignals('signal-discards-lavinthal', carding)
+      .flat()
+      .filter((s) => s?.kind === 'discard')
+    expect(discards.length).toBeGreaterThan(0)
+    for (const d of discards) if (d?.kind === 'discard') expect(d.method).toBe('lavinthal')
   }, 60000)
 })

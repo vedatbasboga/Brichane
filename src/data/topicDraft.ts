@@ -40,6 +40,8 @@ export interface ExcludeDraft {
   /** Boş = dağılım fark etmez. */
   shapes: ShapeClass[]
   suits: Record<Suit, Bounds>
+  /** Konu renginde bulunan kartlar (örn. yerde 10 varsa "boş" değil); boş = koşul yok. */
+  topicSuitCards: number[]
 }
 
 export interface SeatDraft {
@@ -122,7 +124,7 @@ function draftToSuits(suits: Record<Suit, Bounds>): Partial<Record<Suit, Range>>
 }
 
 export function emptyExcludeDraft(): ExcludeDraft {
-  return { hcp: full(SEAT_HCP_BOUNDS), shapes: [], suits: fullSuits() }
+  return { hcp: full(SEAT_HCP_BOUNDS), shapes: [], suits: fullSuits(), topicSuitCards: [] }
 }
 
 export function emptySeatDraft(): SeatDraft {
@@ -203,6 +205,7 @@ function seatToDraft(c: SeatConstraint | undefined): SeatDraft {
       hcp: toBounds(ex.hcp, SEAT_HCP_BOUNDS),
       shapes: shapesFrom(ex.shape),
       suits: suitsToDraft(ex.suits),
+      topicSuitCards: ex.topicSuitCards ? [...ex.topicSuitCards] : [],
     })),
   }
 }
@@ -242,6 +245,9 @@ function draftToSeat(d: SeatDraft): SeatConstraint {
       if (exShape) e.shape = exShape
       const exSuits = draftToSuits(ex.suits)
       if (exSuits) e.suits = exSuits
+      if (ex.topicSuitCards.length) {
+        e.topicSuitCards = TOPIC_CARD_RANKS.filter((rank) => ex.topicSuitCards.includes(rank))
+      }
       return e
     })
     // Boş hariç tutma her eli dışlar; anlamsız olduğu için atılır.
@@ -367,7 +373,8 @@ export function validateDraft(draft: TopicDraft): string[] {
       !isFull(d.topicSuit, LENGTH_BOUNDS) ||
       !isFull(d.topicSuitHcp, SUIT_HCP_BOUNDS) ||
       d.topicSuitCards.length > 0 ||
-      d.topicSuitLongest
+      d.topicSuitLongest ||
+      d.exclude.some((ex) => ex.topicSuitCards.length > 0)
     ) {
       usesTopicSuit = true
     }

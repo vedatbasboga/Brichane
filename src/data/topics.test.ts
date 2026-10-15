@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import {
   RANK_ACE,
+  RANK_JACK,
   RANK_KING,
   RANK_QUEEN,
+  RANK_TEN,
   SUITS,
   cardRank,
   cardSuit,
@@ -18,9 +20,11 @@ import {
   suitHcp,
   suitLengths,
   topicPlay,
+  type Card,
   type Deal,
   type GeneratedDeal,
   type Hand,
+  type Seat,
   type Suit,
 } from '../engine'
 import { DEFAULT_TOPICS, groupByCategory } from './topics'
@@ -421,6 +425,100 @@ describe('signal topics play their own contract', () => {
       expect(suit).not.toBe('S')
       expect(suitLengths(deal.hands[leader])[suit]).toBe(1)
       expect(deal.hands[partnerOf(leader)]).toContain(makeCard(suit, RANK_ACE))
+    }
+  })
+
+  /** Konu kontratı, çıkan, çıkış rengi ve bu rengin dört eldeki kartları (büyükten küçüğe). */
+  function topicDeals(id: string, seed: string) {
+    const recipe = topic(id)
+    return generateDeals({ recipe, count: 16, seed }).deals.map((deal) => {
+      const play = topicPlay(recipe, deal)!
+      const leader = openingLeader(play.contract.declarer)
+      const suit = cardSuit(play.lead!)
+      const holding = (seat: Seat) =>
+        deal.hands[seat]
+          .filter((c) => cardSuit(c) === suit)
+          .sort((a, b) => cardRank(b) - cardRank(a))
+      return {
+        play,
+        lead: play.lead!,
+        leader: holding(leader),
+        partner: holding(partnerOf(leader)),
+        dummy: holding(partnerOf(play.contract.declarer)),
+      }
+    })
+  }
+
+  it('queen lead: the leader leads the Queen from QJ10 without the Ace or King', () => {
+    for (const { play, lead, leader } of topicDeals('signal-attitude-nt-queen', 'queen')) {
+      expect(play.contract.strain).toBe('N')
+      expect(cardRank(lead)).toBe(RANK_QUEEN)
+      expect(leader.slice(0, 3).map(cardRank)).toEqual([RANK_QUEEN, RANK_JACK, RANK_TEN])
+      expect(leader.length).toBeGreaterThanOrEqual(5)
+    }
+  })
+
+  it('count return (NT): fourth-best lead, partner holds the Ace and 3–4 more cards', () => {
+    for (const { play, lead, leader, partner } of topicDeals('signal-return-count-nt', 'return')) {
+      expect(play.contract.strain).toBe('N')
+      expect(lead).toBe(leader[3])
+      expect(cardRank(partner[0])).toBe(RANK_ACE)
+      expect(partner.length).toBeGreaterThanOrEqual(4)
+    }
+  })
+
+  function aceFromAK(lead: Card, leader: readonly Card[]) {
+    expect(cardRank(lead)).toBe(RANK_ACE)
+    expect(cardRank(leader[1])).toBe(RANK_KING)
+  }
+
+  it('Ace lead against a suit contract (count): dummy holds 2+ cards with an honour', () => {
+    for (const { play, lead, leader, dummy } of topicDeals('signal-ace-lead-trump', 'count')) {
+      expect(play.contract.strain).toBe('S')
+      aceFromAK(lead, leader)
+      expect(dummy.length).toBeGreaterThanOrEqual(2)
+      expect(cardRank(dummy[0])).toBeGreaterThan(RANK_TEN)
+    }
+  })
+
+  it('Ace lead against a suit contract (attitude): dummy holds three cards below the ten', () => {
+    for (const { lead, leader, dummy } of topicDeals('signal-attitude-trump', 'attitude')) {
+      aceFromAK(lead, leader)
+      expect(dummy).toHaveLength(3)
+      expect(cardRank(dummy[0])).toBeLessThan(RANK_TEN)
+    }
+  })
+
+  it('Ace lead against a suit contract (suit preference): dummy holds a singleton', () => {
+    for (const { lead, leader, dummy } of topicDeals('signal-suit-preference-trump', 'pref')) {
+      aceFromAK(lead, leader)
+      expect(dummy).toHaveLength(1)
+    }
+  })
+
+  it('count return (trump): fourth-best side-suit lead, partner holds the Ace', () => {
+    for (const { play, lead, leader, partner } of topicDeals('signal-return-count-trump', 'ret')) {
+      expect(play.contract.strain).toBe('S')
+      expect(cardSuit(lead)).not.toBe('S')
+      expect(lead).toBe(leader[3])
+      expect(cardRank(partner[0])).toBe(RANK_ACE)
+      expect(partner.length).toBeGreaterThanOrEqual(3)
+    }
+  })
+
+  it('Lavinthal: suit contract, dummy holds AKQ of a 5–6 card side suit', () => {
+    const recipe = topic('signal-discards-lavinthal')
+    const { deals } = generateDeals({ recipe, count: 32, seed: 'lavinthal' })
+    for (const deal of deals) {
+      const play = topicPlay(recipe, deal)!
+      expect(play.contract.strain).toBe('S')
+      const dummy = deal.hands[partnerOf(play.contract.declarer)]
+      const solid = (['H', 'D', 'C'] as const).some(
+        (s) =>
+          suitLengths(dummy)[s] >= 5 &&
+          [RANK_ACE, RANK_KING, RANK_QUEEN].every((rank) => dummy.includes(makeCard(s, rank))),
+      )
+      expect(solid).toBe(true)
     }
   })
 
