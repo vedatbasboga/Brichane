@@ -107,6 +107,7 @@ Testleri `b79d73e` commit'indeki `topics.test.ts`'te (eski id'lerle).
 
 - 2–3 hafta gerçek derslerde kullanım.
 - Geri bildirim listesi: eksik konular, yanlış aralıklar (hocanın sistemine göre), arayüz zorlukları.
+- **Apel kuralları:** hocaya giden belgedeki 12 soru (https://claude.ai/artifact/JiRGdja5MiFPUsvvR6ZcCZ) yanıtlanınca `engine/signals.ts` ve gerekirse varsayılan anlaşma (Standart + Roman) güncellenir.
 - Hoca "tamam, böyle satılır" deyince **Sonraki etap**'a geçilir.
 
 ---
